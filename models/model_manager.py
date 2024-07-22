@@ -8,6 +8,7 @@ from .grok_model import GrokModel
 from core.utils import setup_logger
 import requests
 from core.config import settings
+from prompts.prompt_handler_factory import PromptHandlerFactory
 
 logger = setup_logger(__name__)
 
@@ -81,10 +82,32 @@ class ModelManager:
     def list_loaded_models(self) -> List[Dict[str, Any]]:
         return [model.get_info() for model in self.models.values()]
 
-    def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, model_type: Optional[str] = None, **kwargs) -> str:
+    def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, temperature = 0.7, model_type: Optional[str] = None, **kwargs) -> str:
         model = self.get_model(model_name, model_type)
         if model is None:
             return f"Model {model_name} not loaded"
-        return model.generate(prompt, max_tokens, **kwargs)
+        
+        handler = PromptHandlerFactory.get_handler(model.get_info()['type'])
+        formatted_prompt = handler.format_completion(prompt)
+                  
+        return model.generate_chat(formatted_prompt, max_tokens, temperature, **kwargs)
+    
+    def generate_chat(self, model_name: str, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature = 0.7, model_type: Optional[str] = None, **kwargs) -> str:
+        
+        if model_type is None:
+            model_type = self.default_models.get(model_name)
+            if model_type is None:
+                logger.error(f"Model type for {model_name} not provided and not found in default models")
+                return None
+        model = self.get_model(model_name, model_type)
+
+        if model is None:
+            return f"Model {model_name} not loaded"
+        
+        handler = PromptHandlerFactory.get_handler(model.get_info()['type'])
+        messages_dict = [msg.dict() for msg in messages] 
+        formatted_messages = handler.format_prompt(messages_dict)
+            
+        return model.generate_chat(formatted_messages, max_tokens, temperature, **kwargs)
 
 model_manager = ModelManager()

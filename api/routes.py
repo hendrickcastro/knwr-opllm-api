@@ -13,20 +13,39 @@ import traceback
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+@router.post("/generate", response_model=GenerateResponse)
+async def generate_text(request: GenerateRequest):
+    try:
+        logger.info(f"Received generate request: {request.dict()}")
+        kwargs = {}
+
+        kwargs['temperature'] = request.temperature
+        generated_text = model_manager.generate(
+            request.model,
+            request.prompt,
+            max_tokens=request.max_tokens,
+            **kwargs
+        )
+        return GenerateResponse(generated_text=generated_text)
+    except Exception as e:
+        logger.error(f"Error generating text: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
     
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
         logger.info(f"Received chat request for model: {request.model_name}")
-        model = model_manager.get_model(request.model_name)
-        if model is None:
-            raise HTTPException(status_code=404, detail=f"Model {request.model_name} not found")
-        messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
-        response = await model.generate_chat(
-            messages, 
+        kwargs = {}
+ 
+        response = model_manager.generate_chat(
+            request.model_name,
+            messages = request.messages,
             max_tokens=request.max_tokens,
-            temperature=request.temperature or 0.7
+            temperature=request.temperature,
+            **kwargs
         )
+    
         return ChatResponse(response=response)
     except Exception as e:
         logger.error(f"Error in chat endpoint: {str(e)}")
@@ -63,24 +82,6 @@ async def list_models():
         return model_manager.list_loaded_models()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/generate", response_model=GenerateResponse)
-async def generate_text(request: GenerateRequest):
-    try:
-        logger.info(f"Received generate request: {request.dict()}")
-        kwargs = {}
-        if request.temperature is not None:
-            kwargs['temperature'] = request.temperature
-        generated_text = model_manager.generate(
-            request.model,
-            request.prompt,
-            max_tokens=request.max_tokens,
-            **kwargs
-        )
-        return GenerateResponse(generated_text=generated_text)
-    except Exception as e:
-        logger.error(f"Error generating text: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/load_model")
 async def load_model(model_name: str, model_type: str):

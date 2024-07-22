@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, List
 from pydantic import Field
 from pydantic import BaseModel as PBaseModel, Field
+from prompts.prompt_handler_factory import PromptHandlerFactory
 
 class BaseModel(ABC):
     @abstractmethod
@@ -9,26 +10,36 @@ class BaseModel(ABC):
         pass
 
     @abstractmethod
-    def generate(self, prompt: str, max_tokens: Optional[int] = None) -> str:
+    def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7) -> str:
         pass
 
     @abstractmethod
     def get_info(self) -> Dict[str, Any]:
         pass
 
-    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None) -> str:
+    @abstractmethod
+    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> str:
         # Default implementation for models that don't support chat natively
-        prompt = self._create_chat_prompt(messages)
-        return self.generate(prompt, max_tokens)
+        
+        # model = self.model_manager.get_model(model_name)
+        # model_type = model.get_info()['type']
+        # handler = PromptHandlerFactory.get_handler(model_type)
+            
+        # prompt = self._create_chat_prompt(messages)
+        # return self.generate(prompt, max_tokens, temperature
+        pass
 
-    def _create_chat_prompt(self, messages: List[Dict[str, str]]) -> str:
-        prompt = ""
-        for message in messages:
-            role = message['role'].capitalize()
-            content = message['content']
-            prompt += f"{role}: {content}\n\n"
-        prompt += "Assistant: "
-        return prompt
+
+    # @abstractmethod
+    # def _create_chat_prompt(self, messages: List[Dict[str, str]]) -> str:
+    #     # prompt = ""
+    #     # for message in messages:
+    #     #     role = message['role'].capitalize()
+    #     #     content = message['content']
+    #     #     prompt += f"{role}: {content}\n\n"
+    #     # prompt += "Assistant: "
+    #     # return prompt
+    #     pass
     
     
 class Message(PBaseModel):
