@@ -1,0 +1,113 @@
+@baseUrl = http://localhost:8000
+# @model_name = gpt-4o-mini
+@model_name = mistral:latest
+
+### List all loaded models
+GET {{baseUrl}}/models
+
+### Load Ollama model
+POST {{baseUrl}}/load_model?model_name=llama3&model_type=ollama
+
+### Load OpenAI model
+POST {{baseUrl}}/load_model?model_name=gpt-4o-mini&model_type=openai
+
+### Load HuggingFace model
+POST {{baseUrl}}/load_model?model_name=gpt2&model_type=huggingface
+
+### Generate text with OpenAI model
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+    "model": "{{model_name}}",
+    "prompt": "Explica brevemente qué es la inteligencia artificial.",
+    "max_tokens": 1000
+}
+
+### Generate text with Ollama model
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+    "model": "{{model_name}}",
+    "prompt": "Explica brevemente qué es la inteligencia artificial.",
+    "max_tokens": 1000
+}
+
+### Chat with model
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {
+            "role": "user",
+            "content": "¿Qué es la inteligencia artificial? responde en español"
+        }
+    ],
+    "temperature": 0
+}
+
+### Generate embedding
+POST {{baseUrl}}/embedding
+Content-Type: application/json
+
+{
+    "text": "Este es un texto de ejemplo para generar un embedding."
+}
+
+### Create chunks
+POST {{baseUrl}}/chunk
+Content-Type: application/json
+
+{
+    "content": "Este es un texto de ejemplo que será dividido en chunks. Puede ser bastante largo y contener múltiples oraciones o párrafos.",
+    "content_type": "text"
+}
+
+### Use AutoAgent
+POST {{baseUrl}}/autoagent
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "task_description": "Analizar sentimiento de un texto",
+    "user_input": "Me encanta programar en Python, es muy divertido y útil."
+}
+
+### Check Ollama connection
+GET {{baseUrl}}/check_ollama
+
+### List Ollama models
+GET {{baseUrl}}/check_ollama_models
+
+### Compare embeddings
+POST {{baseUrl}}/compare_embeddings
+Content-Type: application/json
+
+{
+    "text1": "Este es el primer texto para comparar.",
+    "text2": "Este es el segundo texto para comparar."
+}
+
+### Store embedding
+POST {{baseUrl}}/store_embedding
+Content-Type: application/json
+
+{
+    "text": "Este es un texto para almacenar su embedding.",
+    "metadata": {
+        "source": "ejemplo",
+        "category": "prueba"
+    }
+}
+
+### Retrieve similar embeddings
+POST {{baseUrl}}/search_similar_embeddings
+Content-Type: application/json
+
+{
+    "text": "Este es un texto para almacenar su embedding.",
+    "top_k": 5
+}

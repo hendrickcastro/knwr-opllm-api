@@ -1,0 +1,95 @@
+@baseUrl = http://localhost:8000
+# @model_name = gpt-4o-mini
+@model_name = mistral:latest
+
+# @model_name = claude-3-5-sonnet-20240620
+
+### Ejemplo 1: Análisis de código
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {
+            "role": "system",
+            "content": "Eres un experto programador y analista de código. Tu tarea es revisar código, explicar su funcionamiento y sugerir mejoras. reponde en español"
+        },
+        {
+            "role": "user",
+            "content": "Analiza el siguiente código Python y explica qué hace. Luego, sugiere posibles mejoras:\n\ndef process_data(data):\n    result = []\n    for item in data:\n        if isinstance(item, (int, float)):\n            result.append(item * 2)\n        elif isinstance(item, str):\n            result.append(item.upper())\n    return result"
+        }
+    ]
+}
+
+### Ejemplo 2: Generación de historia
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {
+            "role": "system",
+            "content": "Eres un escritor creativo especializado en historias de ciencia ficción. Crea historias detalladas y fascinantes basadas en las indicaciones del usuario."
+        },
+        {
+            "role": "user",
+            "content": "Escribe el inicio de una historia sobre una civilización alienígena que descubre la Tierra por primera vez."
+        }
+    ]
+}
+
+### Ejemplo 3: Debate ético sobre IA
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {
+            "role": "system",
+            "content": "Eres un moderador imparcial en un debate sobre ética en inteligencia artificial. Tu trabajo es presentar diferentes perspectivas de manera equilibrada y fomentar un diálogo constructivo."
+        },
+        {
+            "role": "user",
+            "content": "Inicia un debate sobre los pros y contras del uso de IA en la toma de decisiones judiciales."
+        }
+    ]
+}
+
+### Ejemplo 4: Análisis de datos y visualización
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {
+            "role": "system",
+            "content": "Eres un experto en análisis de datos y visualización. Tu tarea es ayudar a interpretar datos y sugerir visualizaciones efectivas."
+        },
+        {
+            "role": "user",
+            "content": "Tengo un conjunto de datos sobre ventas de productos en diferentes regiones. Las columnas son: Producto, Región, Ventas (unidades), Ingresos ($). ¿Qué tipo de análisis y visualizaciones me recomiendas para entender mejor el rendimiento de ventas?"
+        }
+    ]
+}
+
+### Ejemplo 5: Planificación de proyecto de software
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {
+            "role": "system",
+            "content": "Eres un experimentado gerente de proyectos de software. Tu tarea es ayudar a planificar y estructurar proyectos de desarrollo de software, considerando mejores prácticas, metodologías ágiles y gestión de recursos."
+        },
+        {
+            "role": "user",
+            "content": "Estoy iniciando un proyecto para desarrollar una aplicación móvil de seguimiento de fitness. Necesito ayuda para planificar las fases del proyecto y definir los principales hitos. ¿Puedes ayudarme a estructurar esto?"
+        }
+    ]
+}

@@ -1,0 +1,152 @@
+@baseUrl = http://localhost:8000
+
+# @model_name = mistral:latest
+@model_name = gpt-4o-mini
+
+### Generar y almacenar embedding de un texto largo
+POST {{baseUrl}}/store_embedding
+Content-Type: application/json
+
+{
+    "text": "La inteligencia artificial (IA) es la simulación de procesos de inteligencia humana por parte de máquinas, especialmente sistemas informáticos. Estos procesos incluyen el aprendizaje (la adquisición de información y reglas para el uso de la información), el razonamiento (usando las reglas para llegar a conclusiones aproximadas o definitivas) y la autocorrección. Las aplicaciones particulares de la IA incluyen sistemas expertos, reconocimiento de voz y visión artificial.",
+    "metadata": {
+        "source": "definicion_ia",
+        "category": "tecnologia",
+        "keywords": ["inteligencia artificial", "machine learning", "sistemas expertos"]
+    }
+}
+
+### Buscar embeddings similares y generar un resumen
+# Primero, busca embeddings similares
+POST {{baseUrl}}/search_similar_embeddings
+Content-Type: application/json
+
+{
+    "text": "¿Cuáles son las aplicaciones prácticas de la inteligencia artificial en la industria actual?",
+    "top_k": 3
+}
+
+### Luego, usa los resultados para generar un resumen con un modelo de lenguaje
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+    "model": "{{model_name}}",
+    "prompt": "Basándote en la siguiente información sobre inteligencia artificial, genera un resumen de 150 palabras sobre sus aplicaciones prácticas en la industria actual: {resultado_de_busqueda_de_embeddings}",
+    "max_tokens": 200
+}
+
+### Análisis de sentimiento utilizando embeddings y chat
+# Primero, genera un embedding para el texto
+POST {{baseUrl}}/embedding
+Content-Type: application/json
+
+{
+    "text": "El nuevo producto lanzado por la empresa ha recibido críticas mixtas. Algunos usuarios están encantados con sus características innovadoras, mientras que otros se quejan de problemas de rendimiento y un precio elevado."
+}
+
+### Luego, usa el embedding para encontrar contexto similar
+POST {{baseUrl}}/search_similar_embeddings
+Content-Type: application/json
+
+{
+    "text": "El nuevo producto lanzado por la empresa ha recibido críticas mixtas. Algunos usuarios están encantados con sus características innovadoras, mientras que otros se quejan de problemas de rendimiento y un precio elevado.",
+    "top_k": 2
+}
+
+### Finalmente, realiza un análisis de sentimiento utilizando el contexto encontrado
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Realiza un análisis de sentimiento del siguiente texto, teniendo en cuenta el contexto proporcionado. Clasifica el sentimiento como positivo, negativo o neutro, y proporciona una explicación detallada de tu análisis.\n\nTexto: 'El nuevo producto lanzado por la empresa ha recibido críticas mixtas. Algunos usuarios están encantados con sus características innovadoras, mientras que otros se quejan de problemas de rendimiento y un precio elevado.'\n\nContexto adicional: {resultado_de_busqueda_de_embeddings}"
+        }
+    ]
+}
+
+### Generación de contenido creativo basado en embeddings
+# Primero, genera embeddings para varios conceptos
+POST {{baseUrl}}/embedding
+Content-Type: application/json
+
+{
+    "text": "viajes espaciales, colonización de Marte, tecnología futurista"
+}
+
+### Luego, busca conceptos similares en tu base de datos
+POST {{baseUrl}}/search_similar_embeddings
+Content-Type: application/json
+
+{
+    "text": "viajes espaciales, colonización de Marte, tecnología futurista",
+    "top_k": 5
+}
+
+### Finalmente, genera una historia corta de ciencia ficción
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+    "model": "{{model_name}}",
+    "prompt": "Escribe una historia corta de ciencia ficción de 300 palabras que incorpore los siguientes conceptos y cualquier idea relacionada que hayas encontrado: viajes espaciales, colonización de Marte, tecnología futurista. Contexto adicional: {resultado_de_busqueda_de_embeddings}",
+    "max_tokens": 400
+}
+
+### Análisis y respuesta a preguntas complejas
+# Primero, genera un embedding para la pregunta
+POST {{baseUrl}}/embedding
+Content-Type: application/json
+
+{
+    "text": "¿Cuáles son las implicaciones éticas y sociales del uso generalizado de la inteligencia artificial en la toma de decisiones gubernamentales y corporativas?"
+}
+
+### Luego, busca información relevante basada en el embedding
+POST {{baseUrl}}/search_similar_embeddings
+Content-Type: application/json
+
+{
+    "text": "¿Cuáles son las implicaciones éticas y sociales del uso generalizado de la inteligencia artificial en la toma de decisiones gubernamentales y corporativas?",
+    "top_k": 3
+}
+
+### Finalmente, genera una respuesta detallada
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "message": "Proporciona una respuesta detallada y bien estructurada a la siguiente pregunta, utilizando la información adicional proporcionada como contexto. Asegúrate de abordar tanto las implicaciones éticas como las sociales, y proporciona ejemplos concretos cuando sea posible.\n\nPregunta: '¿Cuáles son las implicaciones éticas y sociales del uso generalizado de la inteligencia artificial en la toma de decisiones gubernamentales y corporativas?'\n\nContexto adicional: {resultado_de_busqueda_de_embeddings}"
+}
+
+### Generación de código basada en descripción y ejemplos similares
+# Primero, genera un embedding para la descripción del código requerido
+POST {{baseUrl}}/embedding
+Content-Type: application/json
+
+{
+    "text": "Función en Python para analizar sentimientos de tweets utilizando procesamiento de lenguaje natural y machine learning"
+}
+
+### Luego, busca ejemplos de código similares
+POST {{baseUrl}}/search_similar_embeddings
+Content-Type: application/json
+
+{
+    "text": "Función en Python para analizar sentimientos de tweets utilizando procesamiento de lenguaje natural y machine learning",
+    "top_k": 2
+}
+
+### Finalmente, genera el código utilizando el contexto encontrado
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+    "model": "{{model_name}}",
+    "prompt": "Escribe una función en Python para analizar sentimientos de tweets utilizando procesamiento de lenguaje natural y machine learning. Utiliza los siguientes ejemplos similares como referencia, pero asegúrate de que el código sea original y bien comentado:\n\n{resultado_de_busqueda_de_embeddings}\n\nIncluye comentarios explicativos y docstrings apropiados.",
+    "max_tokens": 500
+}

@@ -1,0 +1,146 @@
+@baseUrl = http://localhost:8000
+
+### 1. Generar embedding para un texto de referencia
+# @name embedding
+POST {{baseUrl}}/embedding
+Content-Type: application/json
+
+{
+    "text": "La inteligencia artificial (IA) es la simulación de procesos de inteligencia humana por parte de máquinas, especialmente sistemas informáticos. Estos procesos incluyen el aprendizaje, el razonamiento y la autocorrección."
+}
+
+# ### Guardar el embedding resultante en una variable
+@referenceEmbedding = {{embedding.response.body.embedding}}
+
+# ### 2. Almacenar el embedding con metadatos
+# POST {{baseUrl}}/store_embedding
+# Content-Type: application/json
+
+# {
+#     "text": "La inteligencia artificial (IA) es la simulación de procesos de inteligencia humana por parte de máquinas, especialmente sistemas informáticos. Estos procesos incluyen el aprendizaje, el razonamiento y la autocorrección.",
+#     "metadata": {
+#         "source": "definicion_ia",
+#         "category": "tecnologia",
+#         "keywords": ["inteligencia artificial", "machine learning", "sistemas expertos"]
+#     }
+# }
+
+# ### Guardar el ID del embedding almacenado
+# # @storedEmbeddingId = {{store_embedding.response.body.embedding_id}}
+
+# ### 3. Buscar embeddings similares
+# POST {{baseUrl}}/search_similar_embeddings
+# Content-Type: application/json
+
+# {
+#     "text": "¿Cuáles son las aplicaciones prácticas de la inteligencia artificial en la industria actual?",
+#     "top_k": 3
+# }
+
+# ### Guardar los resultados de la búsqueda
+# # @similarEmbeddings = {{search_similar_embeddings.response.body.similar_embeddings}}
+
+# ### 4. Generar un prompt basado en los embeddings similares
+# # @prompt = Basándote en la siguiente información sobre inteligencia artificial, genera un resumen de 150 palabras sobre sus aplicaciones prácticas en la industria actual: {{similarEmbeddings}}
+
+# ### 5. Usar el prompt generado en una solicitud de chat
+# POST {{baseUrl}}/chat
+# Content-Type: application/json
+
+# {
+#     "model_name": "gpt-4o-mini",
+#     "messages": [
+#         {
+#             "role": "system",
+#             "content": "Eres un experto en inteligencia artificial con amplio conocimiento sobre sus aplicaciones en la industria. Tu tarea es proporcionar información precisa y relevante basada en el contexto proporcionado."
+#         },
+#         {
+#             "role": "user",
+#             "content": "Basándote en la siguiente información sobre inteligencia artificial, genera un resumen de 150 palabras sobre sus aplicaciones prácticas en la industria actual: {{similarEmbeddings}}"
+#         }
+#     ]
+# }
+
+# ### 6. Analizar el sentimiento de un texto usando embeddings y chat
+# # Primero, generamos un embedding para el texto
+# POST {{baseUrl}}/embedding
+# Content-Type: application/json
+
+# {
+#     "text": "El nuevo producto de inteligencia artificial lanzado por la empresa ha recibido críticas mixtas. Algunos usuarios están encantados con sus características innovadoras, mientras que otros se quejan de problemas de rendimiento y un precio elevado."
+# }
+
+# ### Guardar el embedding del texto de sentimiento
+# # @sentimentEmbedding = {{embedding.response.body.embedding}}
+
+# ### Buscar embeddings similares para contexto
+# POST {{baseUrl}}/search_similar_embeddings
+# Content-Type: application/json
+
+# {
+#     "text": "El nuevo producto de inteligencia artificial lanzado por la empresa ha recibido críticas mixtas. Algunos usuarios están encantados con sus características innovadoras, mientras que otros se quejan de problemas de rendimiento y un precio elevado.",
+#     "top_k": 2
+# }
+
+# ### Guardar los resultados de la búsqueda de contexto
+# # @sentimentContext = {{search_similar_embeddings.response.body.similar_embeddings}}
+
+# ### Realizar análisis de sentimiento utilizando el contexto encontrado
+# POST {{baseUrl}}/chat
+# Content-Type: application/json
+
+# {
+#     "model_name": "gpt-4o-mini",
+#     "messages": [
+#         {
+#             "role": "system",
+#             "content": "Eres un experto en análisis de sentimiento y opiniones sobre productos tecnológicos. Tu tarea es proporcionar un análisis detallado del sentimiento expresado en el texto, considerando el contexto proporcionado."
+#         },
+#         {
+#             "role": "user",
+#             "content": "Realiza un análisis de sentimiento del siguiente texto, teniendo en cuenta el contexto proporcionado. Clasifica el sentimiento como positivo, negativo o neutro, y proporciona una explicación detallada de tu análisis.\n\nTexto: 'El nuevo producto de inteligencia artificial lanzado por la empresa ha recibido críticas mixtas. Algunos usuarios están encantados con sus características innovadoras, mientras que otros se quejan de problemas de rendimiento y un precio elevado.'\n\nContexto adicional: {{sentimentContext}}"
+#         }
+#     ]
+# }
+
+# ### 7. Generación de código basada en embeddings y ejemplos similares
+# # Primero, generamos un embedding para la descripción del código requerido
+# POST {{baseUrl}}/embedding
+# Content-Type: application/json
+
+# {
+#     "text": "Función en Python para analizar sentimientos de tweets utilizando procesamiento de lenguaje natural y machine learning"
+# }
+
+# ### Guardar el embedding de la descripción del código
+# # @codeDescriptionEmbedding = {{embedding.response.body.embedding}}
+
+# ### Buscar ejemplos de código similares
+# POST {{baseUrl}}/search_similar_embeddings
+# Content-Type: application/json
+
+# {
+#     "text": "Función en Python para analizar sentimientos de tweets utilizando procesamiento de lenguaje natural y machine learning",
+#     "top_k": 2
+# }
+
+# ### Guardar los resultados de la búsqueda de ejemplos de código
+# # @similarCodeExamples = {{search_similar_embeddings.response.body.similar_embeddings}}
+
+# ### Generar el código utilizando el contexto encontrado
+# POST {{baseUrl}}/chat
+# Content-Type: application/json
+
+# {
+#     "model_name": "gpt-4o-mini",
+#     "messages": [
+#         {
+#             "role": "system",
+#             "content": "Eres un experto programador de Python especializado en procesamiento de lenguaje natural y análisis de sentimientos. Tu tarea es escribir código eficiente y bien documentado basado en las especificaciones proporcionadas."
+#         },
+#         {
+#             "role": "user",
+#             "content": "Escribe una función en Python para analizar sentimientos de tweets utilizando procesamiento de lenguaje natural y machine learning. Utiliza los siguientes ejemplos similares como referencia, pero asegúrate de que el código sea original y bien comentado:\n\n{{similarCodeExamples}}\n\nIncluye comentarios explicativos y docstrings apropiados."
+#         }
+#     ]
+# }

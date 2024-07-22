@@ -1,0 +1,24 @@
+{
+    "CodeGPT.apiKey": "CodeGPT Plus Beta",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/__pycache__": true,
+        "__pycache__": true,
+        ".pytest_cache": true,
+        "api/.pytest_cache": true,
+        "**/.pytest_cache": true,
+        "api/apillm": true,
+        "**/apillm": true,
+        "apillm": true,
+        "api/venv": true,
+        "**/venv": true,
+        "venv": true,
+        "**/__init__.py": false
+    },
+    "explorerExclude.backup": {}
+}
