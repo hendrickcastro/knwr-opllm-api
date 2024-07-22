@@ -1,3 +1,8 @@
+
+## Archivo: model_manager.py
+### Ruta Relativa: ../api\models\model_manager.py
+
+```python
 from typing import Dict, Any, List, Optional
 from .base_model import BaseModel
 from .ollama_model import OllamaModel
@@ -14,26 +19,52 @@ logger = setup_logger(__name__)
 class ModelManager:
     def __init__(self):
         self.models: Dict[str, BaseModel] = {}
-        self.default_models = settings.DEFAULT_MODELS
-        self._load_ollama_models()
         logger.info("Initializing ModelManager")
+        self._load_default_models()
 
-    def _load_ollama_models(self) -> None:
+    def _load_default_models(self):
+        default_models = [
+            ("gpt-4o-mini", "openai"),
+            ("gpt-4o-coder", "grok"),
+            ("microsoft/codebert-base", "huggingface"),
+            ("claude-3-5-sonnet-20240620", "anthropic")
+        ]
+        logger.info(f"Attempting to load default models: {default_models}")
+        for model_name, model_type in default_models:
+            try:
+                logger.info(f"Attempting to load model: {model_name} of type {model_type}")
+                self.load_model(model_name, model_type)
+            except Exception as e:
+                logger.warning(f"Failed to load default model {model_name}: {str(e)}", exc_info=True)
+        
+        self._load_ollama_models()
+
+    def _load_ollama_models(self):
+        try:
+            ollama_models = self._get_ollama_models()
+            for model_name in ollama_models:
+                try:
+                    logger.info(f"Attempting to load Ollama model: {model_name}")
+                    self.load_model(model_name, "ollama")
+                except Exception as e:
+                    logger.warning(f"Failed to load Ollama model {model_name}: {str(e)}", exc_info=True)
+        except Exception as e:
+            logger.error(f"Failed to load Ollama models: {str(e)}", exc_info=True)
+
+    def _get_ollama_models(self) -> List[str]:
         try:
             response = requests.get(f"{settings.OLLAMA_BASE_URL}/api/tags")
             if response.status_code == 200:
                 models = response.json().get("models", [])
-                ollama_model_names = [model["name"] for model in models]
-                for model_name in ollama_model_names:
-                    self.default_models[model_name] = "ollama"
-                    self.default_models[f"{model_name}:latest"] = "ollama"
-                logger.info(f"Ollama models loaded: {ollama_model_names}")
+                return [model["name"] for model in models]
             else:
                 logger.error(f"Failed to get Ollama models. Status code: {response.status_code}")
+                return []
         except Exception as e:
             logger.error(f"Error fetching Ollama models: {str(e)}")
+            return []
 
-    def _load_model(self, model_name: str, model_type: str) -> None:
+    def load_model(self, model_name: str, model_type: str) -> None:
         if model_name in self.models:
             logger.info(f"Model {model_name} already loaded")
             return
@@ -57,34 +88,17 @@ class ModelManager:
         self.models[model_name] = model
         logger.info(f"Model {model_name} of type {model_type} loaded successfully")
 
-    def load_model(self, model_name: str, model_type: str) -> None:
-        self._load_model(model_name, model_type)
-
-    def get_model(self, model_name: str, model_type: Optional[str] = None) -> Optional[BaseModel]:
-        # Consider the model name as latest if no version is provided
-        # if ':' not in model_name:
-        #     model_name = f"{model_name}:latest"
-
+    def get_model(self, model_name: str) -> BaseModel:
         if model_name not in self.models:
-            if model_type is None:
-                model_type = self.default_models.get(model_name)
-                if model_type is None:
-                    logger.error(f"Model type for {model_name} not provided and not found in default models")
-                    return None
-            try:
-                self.load_model(model_name, model_type)
-            except Exception as e:
-                logger.error(f"Failed to load model {model_name}: {str(e)}")
-                return None
-        return self.models.get(model_name)
+            raise ValueError(f"Model {model_name} not loaded")
+        return self.models[model_name]
 
     def list_loaded_models(self) -> List[Dict[str, Any]]:
         return [model.get_info() for model in self.models.values()]
 
-    def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, model_type: Optional[str] = None, **kwargs) -> str:
-        model = self.get_model(model_name, model_type)
-        if model is None:
-            return f"Model {model_name} not loaded"
-        return model.generate(prompt, max_tokens, **kwargs)
+    def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None) -> str:
+        model = self.get_model(model_name)
+        return model.generate(prompt, max_tokens)
 
 model_manager = ModelManager()
+```

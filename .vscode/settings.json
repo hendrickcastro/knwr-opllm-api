@@ -1,5 +1,5 @@
 {
-    "CodeGPT.apiKey": "CodeGPT Plus Beta",
+    "CodeGPT.apiKey": "Ollama",
     "files.exclude": {
         "**/.git": true,
         "**/.svn": true,

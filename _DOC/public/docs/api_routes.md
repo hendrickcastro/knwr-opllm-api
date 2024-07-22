@@ -1,32 +1,116 @@
+
+## Archivo: routes.py
+### Ruta Relativa: ../api\api\routes.py
+
+```python
 from fastapi import APIRouter, HTTPException
-from typing import List, Dict
+from pydantic import BaseModel, Field
+from typing import Any, List, Dict, Optional
 from models.model_manager import model_manager
 from prompts.prompt_handler import prompt_handler
 from chunks.chunk_handler import chunk_handler
 from models.embeddings import embedding_generator
 from storage.database import db
 from agents.autoagent import auto_agent_factory
-from models.base_model import ChatResponse, ChatRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, AutoAgentRequest, AutoAgentResponse, GenerateRequest, GenerateResponse, CompareEmbeddingsRequest, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
 import logging
 import traceback
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+class Message(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    model_name: str
+    messages: List[Message]
+
+class ChatResponse(BaseModel):
+    response: str
+
+class EmbeddingRequest(BaseModel):
+    text: str
+
+    class Config:
+        protected_namespaces = ()
+
+class EmbeddingResponse(BaseModel):
+    embedding: List[float]
+
+class ChunkRequest(BaseModel):
+    content: str
+    content_type: str
+
+    class Config:
+        protected_namespaces = ()
+
+class ChunkResponse(BaseModel):
+    chunks: List[str]
+
+class AutoAgentRequest(BaseModel):
+    model_name: str = Field(..., alias='model_name')
+    task_description: str
+    user_input: str
+
+    class Config:
+        protected_namespaces = ()
+
+class AutoAgentResponse(BaseModel):
+    response: str
+
+class GenerateRequest(BaseModel):
+    model: str = Field(..., alias='model')
+    prompt: str
+    max_tokens: Optional[int] = None
+
+    class Config:
+        protected_namespaces = ()
+
+class CompareEmbeddingsRequest(BaseModel):
+    text1: str
+    text2: str
+
+class CompareEmbeddingsResponse(BaseModel):
+    similarity: float
+
+class StoreEmbeddingRequest(BaseModel):
+    text: str
+    metadata: Dict[str, Any]
+
+class StoreEmbeddingResponse(BaseModel):
+    embedding_id: str
+
+class SearchSimilarEmbeddingsRequest(BaseModel):
+    text: str
+    top_k: int = 5
+
+class SimilarEmbedding(BaseModel):
+    id: str
+    metadata: Dict[str, Any]
+    cosine_similarity: float
+
+class SearchSimilarEmbeddingsResponse(BaseModel):
+    similar_embeddings: List[SimilarEmbedding]
+
+class GenerateResponse(BaseModel):
+    generated_text: str
+    
+class RAGRequest(BaseModel):
+    query: str
+    model_name: str
+    top_k: int = 5
+
+class RAGResponse(BaseModel):
+    answer: str
+    sources: List[Dict[str, Any]]
     
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
         logger.info(f"Received chat request for model: {request.model_name}")
-        model = model_manager.get_model(request.model_name)
-        if model is None:
-            raise HTTPException(status_code=404, detail=f"Model {request.model_name} not found")
-        messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
-        response = await model.generate_chat(
-            messages, 
-            max_tokens=request.max_tokens,
-            temperature=request.temperature or 0.7
-        )
+        response = prompt_handler.process_prompt(request.model_name, "chat", messages=request.messages)
         return ChatResponse(response=response)
     except Exception as e:
         logger.error(f"Error in chat endpoint: {str(e)}")
@@ -67,15 +151,11 @@ async def list_models():
 @router.post("/generate", response_model=GenerateResponse)
 async def generate_text(request: GenerateRequest):
     try:
-        logger.info(f"Received generate request: {request.dict()}")
-        kwargs = {}
-        if request.temperature is not None:
-            kwargs['temperature'] = request.temperature
+        logger.info(f"Received generate request: {request.json()}")
         generated_text = model_manager.generate(
-            request.model,
+            request.model,  # Cambiado de request.model_name a request.model
             request.prompt,
-            max_tokens=request.max_tokens,
-            **kwargs
+            request.max_tokens
         )
         return GenerateResponse(generated_text=generated_text)
     except Exception as e:
@@ -179,3 +259,5 @@ async def rag_query(request: RAGRequest):
     except Exception as e:
         logger.error(f"Error in RAG query: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+```

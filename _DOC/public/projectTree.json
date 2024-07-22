@@ -1,0 +1,52 @@
+{
+  "agents": {
+    "autoagent.py": "file"
+  },
+  "api": {
+    "routes.py": "file"
+  },
+  "chunks": {
+    "chunk_handler.py": "file",
+    "code_chunks.py": "file",
+    "text_chunks.py": "file"
+  },
+  "core": {
+    "config.py": "file",
+    "utils.py": "file"
+  },
+  "create.sh": "file",
+  "Dockerfile": "file",
+  "main.py": "file",
+  "models": {
+    "anthropic_model.py": "file",
+    "base_model.py": "file",
+    "embeddings.py": "file",
+    "grok_model.py": "file",
+    "huggingface_model.py": "file",
+    "model_manager.py": "file",
+    "ollama_model.py": "file",
+    "openai_model.py": "file"
+  },
+  "prompts": {
+    "anthropic_prompt_handler.py": "file",
+    "base_prompt_handler.py": "file",
+    "baul": {
+      "prompt_handler.py": "file",
+      "prompt_processor.py": "file"
+    },
+    "grok_prompt_handler.py": "file",
+    "huggingface_prompt_handler.py": "file",
+    "ollama_prompt_handler.py": "file",
+    "openai_prompt_handler.py": "file",
+    "prompt_handler.py": "file",
+    "prompt_handler_factory.py": "file"
+  },
+  "public": {
+    "docs": {}
+  },
+  "storage": {
+    "database.py": "file",
+    "models.py": "file"
+  },
+  "up.sh": "file"
+}

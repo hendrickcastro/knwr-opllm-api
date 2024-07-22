@@ -1,3 +1,8 @@
+
+## Archivo: config.py
+### Ruta Relativa: ../api\core\config.py
+
+```python
 import os
 from dotenv import load_dotenv
 from typing import Dict, Any
@@ -39,18 +44,10 @@ class Settings:
             "api_key": GROK_API_KEY
         },
     }
-    
-    DEFAULT_MODELS: Dict[str, str] = {
-        "gpt-4o-mini": "openai",
-        "gpt-4o-coder": "grok",
-        "microsoft/codebert-base": "huggingface",
-        "claude-3-5-sonnet-20240620": "anthropic",
-        "llama3-70b-8192": "grok",  # Asegúrate de que esté aquí
-        "llama3-70b-8192:latest": "grok",  # Asegúrate de que esté aquí también
-    }
 
     @property
     def DATABASE_URL(self):
         return f"mongodb://{self.MONGODB_USER}:{self.MONGODB_PASS}@{self.MONGODB_URI.split('://')[1]}"
 
 settings = Settings()
+```

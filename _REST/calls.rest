@@ -1,12 +1,14 @@
 @baseUrl = http://localhost:8000
-# @model_name = gpt-4o-mini
-@model_name = mistral:latest
+# @model_name = gpt-4o-miniº
+@model_name = llama3:latest
+# @model_name = llama3-70b-8192:latest
 
 ### List all loaded models
+
 GET {{baseUrl}}/models
 
 ### Load Ollama model
-POST {{baseUrl}}/load_model?model_name=llama3&model_type=ollama
+POST {{baseUrl}}/load_model?model_name=llama3-70b-8192:latest&model_type=grok
 
 ### Load Ollama model
 POST {{baseUrl}}/load_model?model_name=mistral&model_type=ollama
@@ -38,6 +40,7 @@ Content-Type: application/json
 }
 
 ### Chat with model
+
 POST {{baseUrl}}/chat
 Content-Type: application/json
 

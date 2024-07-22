@@ -1,45 +1,47 @@
-from typing import Any, Dict, Optional
-import requests
-from .base_model import BaseModel
-from core.utils import setup_logger
+import asyncio
+from typing import Any, Dict, Optional, List
+from xai_sdk import Client
 from core.config import settings
+from .base_model import BaseModel
+import logging
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 class GrokModel(BaseModel):
-    def __init__(self, model_name: str, api_key: Optional[str] = None):
+    def __init__(self, model_name: str):
         self.model_name = model_name
-        self.api_key = api_key
-        self.base_url = "https://api.grok.com"  # URL base de la API de Grok
-        self.headers = {
-            "Authorization": f"Bearer {settings.GROK_API_KEY}",
-            "Content-Type": "application/json"
-        }
+        self.client = Client(api_key=settings.GROK_API_KEY)
 
     def load(self) -> None:
-        # Aquí puedes agregar lógica para verificar si el modelo está disponible en Grok si es necesario
+        # No se necesita cargar explícitamente para Grok
         pass
 
-    def generate(self, prompt: str, max_tokens: Optional[int] = None) -> str:
+    async def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> str:
         try:
-            payload = {
-                "model": self.model_name,
-                "prompt": prompt,
-                "max_tokens": max_tokens or 100
-            }
-            
-            logger.info(f"Sending payload to Grok API: {payload}")
-            response = requests.post(f"{self.base_url}/generate", json=payload, headers=self.headers)
-            logger.info(f"Grok API response status code: {response.status_code}")
-            logger.info(f"Grok API response content: {response.text}")
-
-            if response.status_code == 200:
-                return response.json()["generated_text"]
-            else:
-                raise Exception(f"Grok API error: {response.text}")
+            response_text = ""
+            async for token in self.client.sampler.sample(prompt, max_len=max_tokens or 100):
+                response_text += token.token_str
+            return response_text
         except Exception as e:
             logger.error(f"Error generating with Grok model {self.model_name}: {str(e)}")
             raise
+
+    async def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> str:
+        try:
+            prompt = self._create_chat_prompt(messages)
+            return await self.generate(prompt, max_tokens, temperature, **kwargs)
+        except Exception as e:
+            logger.error(f"Error generating chat with Grok model {self.model_name}: {str(e)}")
+            raise
+
+    def _create_chat_prompt(self, messages: List[Dict[str, str]]) -> str:
+        prompt = ""
+        for message in messages:
+            role = message['role'].capitalize()
+            content = message['content']
+            prompt += f"{role}: {content}\n\n"
+        prompt += "Assistant: "
+        return prompt
 
     def get_info(self) -> Dict[str, Any]:
         return {"name": self.model_name, "type": "grok"}
