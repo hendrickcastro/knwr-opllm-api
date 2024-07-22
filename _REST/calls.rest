@@ -8,6 +8,9 @@ GET {{baseUrl}}/models
 ### Load Ollama model
 POST {{baseUrl}}/load_model?model_name=llama3&model_type=ollama
 
+### Load Ollama model
+POST {{baseUrl}}/load_model?model_name=mistral&model_type=ollama
+
 ### Load OpenAI model
 POST {{baseUrl}}/load_model?model_name=gpt-4o-mini&model_type=openai
 
