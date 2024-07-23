@@ -28,36 +28,7 @@ class OllamaModel(BaseModel):
             logger.error(f"Error checking Ollama model availability: {str(e)}")
             return False
 
-    def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: Optional[float] = None, **kwargs) -> str:
-        try:
-            payload = {
-                "model": self.model_name,
-                "prompt": prompt
-            }
-            if max_tokens:
-                payload["max_tokens"] = max_tokens
-            if temperature is not None:
-                payload["temperature"] = temperature
-            
-            response = requests.post(f"{self.base_url}/api/generate", json=payload)
-            if response.status_code == 200:
-                response_text = response.text
-                response_lines = response_text.strip().split('\n')
-                full_response = ""
-                for line in response_lines:
-                    try:
-                        response_json = json.loads(line)
-                        full_response += response_json.get("response", "")
-                    except json.JSONDecodeError:
-                        logger.warning(f"Could not parse line as JSON: {line}")
-                return full_response.strip()
-            else:
-                raise Exception(f"Ollama API error: {response.text}")
-        except Exception as e:
-            logger.error(f"Error generating with Ollama model {self.model_name}: {str(e)}")
-            raise
-
-    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: Optional[float] = None, **kwargs) -> str:
+    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> str:
         try:
             formatted_messages = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
             formatted_messages += "\nassistant:"
@@ -87,6 +58,35 @@ class OllamaModel(BaseModel):
                 raise Exception(f"Ollama API error: {response.text}")
         except Exception as e:
             logger.error(f"Error generating chat with Ollama model {self.model_name}: {str(e)}")
+            raise
+        
+    def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7) -> str:
+        try:
+            payload = {
+                "model": self.model_name,
+                "prompt": prompt
+            }
+            if max_tokens:
+                payload["max_tokens"] = max_tokens
+            
+            payload["temperature"] = temperature
+            
+            response = requests.post(f"{self.base_url}/api/generate", json=payload)
+            if response.status_code == 200:
+                response_text = response.text
+                response_lines = response_text.strip().split('\n')
+                full_response = ""
+                for line in response_lines:
+                    try:
+                        response_json = json.loads(line)
+                        full_response += response_json.get("response", "")
+                    except json.JSONDecodeError:
+                        logger.warning(f"Could not parse line as JSON: {line}")
+                return full_response.strip()
+            else:
+                raise Exception(f"Ollama API error: {response.text}")
+        except Exception as e:
+            logger.error(f"Error generating with Ollama model {self.model_name}: {str(e)}")
             raise
 
     def get_info(self) -> Dict[str, Any]:

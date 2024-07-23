@@ -14,7 +14,7 @@
                     "localRoot": "${workspaceFolder}",
                     "remoteRoot": "${workspaceFolder}"
                 }
-            ]
+            ],
         },
         {
             "name": "Python: Ejecutar main.py with venv",
