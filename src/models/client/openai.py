@@ -1,8 +1,8 @@
 from openai import OpenAI
 from typing import Any, Dict, Optional, List
-from .base_model import BaseModel
-from core.config import settings
-from core.utils import setup_logger
+from ..base_model import BaseModel
+from ...core.config import settings
+from ...core.utils import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -20,8 +20,8 @@ class OpenAIModel(BaseModel):
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
+                # max_tokens=max_tokens,
+                # temperature=temperature,
                 **kwargs
             )
             return response.choices[0].message.content.strip()

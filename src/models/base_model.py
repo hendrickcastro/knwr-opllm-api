@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, List
 from pydantic import Field
 from pydantic import BaseModel as PBaseModel, Field
-from prompts.prompt_handler_factory import PromptHandlerFactory
 
 class BaseModel(ABC):
     @abstractmethod

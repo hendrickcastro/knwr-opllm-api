@@ -1,12 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict
-from models.model_manager import model_manager
-from prompts.prompt_handler import prompt_handler
-from chunks.chunk_handler import chunk_handler
-from models.embeddings import embedding_generator
-from storage.database import db
-from agents.autoagent import auto_agent_factory
-from models.base_model import ChatResponse, ChatRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, AutoAgentRequest, AutoAgentResponse, GenerateRequest, GenerateResponse, CompareEmbeddingsRequest, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
+from ..core.chunks.chunk_handler import chunk_handler
+from ..core.agents.autoagent import auto_agent_factory
+from ..models.model_manager import model_manager
+from ..models.embeddings import embedding_generator
+from ..core.storage.database import db
+from ..models.base_model import ChatResponse, ChatRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, AutoAgentRequest, AutoAgentResponse, GenerateRequest, GenerateResponse, CompareEmbeddingsRequest, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
 import logging
 import traceback
 
@@ -41,8 +40,8 @@ async def chat(request: ChatRequest):
         response = model_manager.generate_chat(
             request.model_name,
             messages = request.messages,
-            max_tokens=request.max_tokens,
-            temperature=request.temperature,
+            # max_tokens=request.max_tokens,
+            # temperature=request.temperature,
             **kwargs
         )
     

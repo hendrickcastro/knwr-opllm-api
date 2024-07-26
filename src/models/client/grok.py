@@ -1,8 +1,8 @@
 import asyncio
 from typing import Any, Dict, Optional, List
 from xai_sdk import Client
-from core.config import settings
-from .base_model import BaseModel
+from ...core.config import settings
+from ..base_model import BaseModel
 import logging
 
 logger = logging.getLogger(__name__)

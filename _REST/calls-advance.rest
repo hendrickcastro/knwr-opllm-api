@@ -1,8 +1,30 @@
 @baseUrl = http://localhost:8000
-# @model_name = gpt-4o-mini
-@model_name = mistral:latest
+@model_name = gpt-4o-mini
+# @model_name = llama3.1:latest
 
 # @model_name = claude-3-5-sonnet-20240620
+
+
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {"role": "system", "content": "Eres un asistente que ayuda a los usuarios con información precisa y detallada."},
+        {"role": "user", "content": "Hola, ¿cómo estás?"},
+        {"role": "assistant", "content": "Hola! Estoy aquí para ayudarte con cualquier pregunta que tengas."},
+        {"role": "user", "content": "¿Puedes darme una recomendación de libros sobre inteligencia artificial?"}
+    ],
+    "max_tokens": 20,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "n": 1,
+    "stop": ["\n", " user:"],
+    "presence_penalty": 0.6,
+    "frequency_penalty": 0.0,
+    "user": "example_user"
+}
 
 ### Ejemplo 1: Análisis de código
 POST {{baseUrl}}/chat

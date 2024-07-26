@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from api.routes import router
-from core.utils import setup_logger
+from src.api.routes import router  # Adjusted import
+from src.core.utils import setup_logger  # Adjusted import
 
 logger = setup_logger(__name__)
 

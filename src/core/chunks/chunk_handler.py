@@ -1,7 +1,7 @@
 from typing import List, Union
 from .text_chunks import text_chunker
 from .code_chunks import code_chunker
-from core.utils import setup_logger
+from ..utils import setup_logger
 
 logger = setup_logger(__name__)
 

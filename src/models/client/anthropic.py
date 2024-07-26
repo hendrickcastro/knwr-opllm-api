@@ -1,8 +1,8 @@
 from typing import Any, Dict, Optional, List
 from anthropic import Anthropic
-from .base_model import BaseModel
-from core.utils import setup_logger
-from core.config import settings
+from ..base_model import BaseModel
+from ...core.utils import setup_logger
+from ...core.config import settings
 
 logger = setup_logger(__name__)
 

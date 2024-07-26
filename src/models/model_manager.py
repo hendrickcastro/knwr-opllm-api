@@ -1,14 +1,14 @@
+import requests
 from typing import Dict, Any, List, Optional
 from .base_model import BaseModel
-from .ollama_model import OllamaModel
-from .huggingface_model import HuggingFaceModel
-from .openai_model import OpenAIModel
-from .anthropic_model import AnthropicModel
-from .grok_model import GrokModel
-from core.utils import setup_logger
-import requests
-from core.config import settings
-from prompts.prompt_handler_factory import PromptHandlerFactory
+from .client.ollama import OllamaModel
+from .client.huggingface import HuggingFaceModel
+from .client.openai import OpenAIModel
+from .client.anthropic import AnthropicModel
+from .client.grok import GrokModel
+from ..core.utils import setup_logger
+from ..core.config import settings
+from .prompt_factory import PromptHandlerFactory
 
 logger = setup_logger(__name__)
 

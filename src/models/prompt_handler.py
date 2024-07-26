@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from models.model_manager import model_manager
-from core.utils import setup_logger
-from .prompt_handler_factory import PromptHandlerFactory
+from .model_manager import model_manager
+from ..core.utils import setup_logger
+from .prompt_factory import PromptHandlerFactory
 from typing import List, Optional
 
 logger = setup_logger(__name__)

@@ -1,5 +1,5 @@
 from typing import List, Dict, Any
-from .base_prompt_handler import BasePromptHandler
+from ..base_prompt import BasePromptHandler
 
 class OllamaPromptHandler(BasePromptHandler):
     def format_prompt(self, messages: List[Dict[str, str]]) -> List[Dict[str, Any]]:
