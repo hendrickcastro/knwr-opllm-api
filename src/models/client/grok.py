@@ -2,12 +2,12 @@ import asyncio
 from typing import Any, Dict, Optional, List
 from xai_sdk import Client
 from ...core.config import settings
-from ..base_model import BaseModel
+from ...contract.IClient import IClient
 import logging
 
 logger = logging.getLogger(__name__)
 
-class GrokModel(BaseModel):
+class GrokModel(IClient):
     def __init__(self, model_name: str):
         self.model_name = model_name
         self.client = Client(api_key=settings.GROK_API_KEY)

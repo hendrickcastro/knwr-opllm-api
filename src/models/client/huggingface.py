@@ -1,12 +1,12 @@
 from typing import Any, Dict, Optional
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from ..base_model import BaseModel
+from ...contract.IClient import IClient
 from ...core.utils import setup_logger
 from ...core.config import settings
 
 logger = setup_logger(__name__)
 
-class HuggingFaceModel(BaseModel):
+class HuggingFaceModel(IClient):
     def __init__(self, model_name: str):
         self.model_name = model_name
         self.api_key = settings.HUGGINGFACE_API_KEY

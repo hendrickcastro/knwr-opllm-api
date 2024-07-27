@@ -1,13 +1,13 @@
 import requests
 import json
 from typing import Any, Dict, Optional, List
-from ..base_model import BaseModel
+from ...contract.IClient import IClient
 from ...core.config import settings
 from ...core.utils import setup_logger
 
 logger = setup_logger(__name__)
 
-class OllamaModel(BaseModel):
+class OllamaModel(IClient):
     def __init__(self, model_name: str):
         self.model_name = model_name
         self.base_url = settings.OLLAMA_BASE_URL

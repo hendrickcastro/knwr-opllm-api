@@ -1,8 +1,8 @@
-from .prompts.openai_prompt import OpenAIPromptHandler
-from .prompts.ollama_prompt import OllamaPromptHandler
-from .prompts.anthropic_prompt import AnthropicPromptHandler
-from .prompts.grok_prompt import GrokPromptHandler
-from .prompts.huggingface_prompt import HuggingFacePromptHandler
+from .openai_prompt import OpenAIPromptHandler
+from .ollama_prompt import OllamaPromptHandler
+from .anthropic_prompt import AnthropicPromptHandler
+from .grok_prompt import GrokPromptHandler
+from .huggingface_prompt import HuggingFacePromptHandler
 
 class PromptHandlerFactory:
     @staticmethod

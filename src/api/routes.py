@@ -5,7 +5,7 @@ from ..core.agents.autoagent import auto_agent_factory
 from ..models.model_manager import model_manager
 from ..models.embeddings import embedding_generator
 from ..core.storage.database import db
-from ..models.base_model import ChatResponse, ChatRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, AutoAgentRequest, AutoAgentResponse, GenerateRequest, GenerateResponse, CompareEmbeddingsRequest, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
+from ..entity.Class import ChatResponse, ChatRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, AutoAgentRequest, AutoAgentResponse, GenerateRequest, GenerateResponse, CompareEmbeddingsRequest, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
 import logging
 import traceback
 
@@ -36,9 +36,9 @@ async def chat(request: ChatRequest):
     try:
         logger.info(f"Received chat request for model: {request.model_name}")
         kwargs = request.dict(exclude={"model_name", "messages"})
- 
+        
         response = model_manager.generate_chat(
-            request.model_name,
+            model_name = request.model_name,
             messages = request.messages,
             **kwargs
         )

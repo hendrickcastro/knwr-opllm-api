@@ -1,5 +1,5 @@
 from typing import List, Dict
-from ..base_prompt import BasePromptHandler
+from .base_prompt import BasePromptHandler
 
 class GrokPromptHandler(BasePromptHandler):
     def format_prompt(self, messages: List[Dict[str, str]]) -> str:

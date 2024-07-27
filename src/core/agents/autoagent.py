@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from ...models.model_manager import model_manager
-from ...models.prompt_handler import prompt_handler
+from ...models.prompts.prompt_handler import prompt_handler
 from ...core.utils import setup_logger
 
 logger = setup_logger(__name__)
