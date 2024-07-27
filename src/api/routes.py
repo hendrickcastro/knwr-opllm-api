@@ -35,13 +35,11 @@ async def generate_text(request: GenerateRequest):
 async def chat(request: ChatRequest):
     try:
         logger.info(f"Received chat request for model: {request.model_name}")
-        kwargs = {}
+        kwargs = request.dict(exclude={"model_name", "messages"})
  
         response = model_manager.generate_chat(
             request.model_name,
             messages = request.messages,
-            # max_tokens=request.max_tokens,
-            # temperature=request.temperature,
             **kwargs
         )
     

@@ -16,12 +16,23 @@ class OpenAIModel(BaseModel):
         pass
 
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> str:
+        
+        ## impruve 
+        #   "top_p": 0.9,
+        #   "n": 1,
+        #   "stop": ["\n", " user:"],
+        #    "presence_penalty": 0.6,
+        #   "frequency_penalty": 0.0,
+        #   "user": "example_user"
+        
+        for key, value in kwargs.items():
+            print(f"{key}: {value}")
         try:
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
-                # max_tokens=max_tokens,
-                # temperature=temperature,
+                max_tokens=max_tokens,
+                temperature=temperature,
                 **kwargs
             )
             return response.choices[0].message.content.strip()
