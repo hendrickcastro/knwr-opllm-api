@@ -11,7 +11,7 @@ class IClient(ABC):
         pass
 
     @abstractmethod
-    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> str:
+    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Optional[object]:
         pass
 
     @abstractmethod

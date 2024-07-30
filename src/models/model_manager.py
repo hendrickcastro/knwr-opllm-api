@@ -8,7 +8,6 @@ from .client.anthropic import AnthropicModel
 from .client.grok import GrokModel
 from ..core.utils import setup_logger
 from ..core.config import settings
-from .prompts.prompt_factory import PromptHandlerFactory
 
 logger = setup_logger(__name__)
 
@@ -51,7 +50,7 @@ class ModelManager:
             logger.error(f"Unsupported model type: {model_type}")
             raise ValueError(f"Unsupported model type: {model_type}")
 
-        try :
+        try:
             logger.info(f"Creating instance of {model_type} model: {model_name}")
             model = model_classes[model_type](model_name)
             logger.info(f"Loading model: {model_name}")
@@ -82,27 +81,34 @@ class ModelManager:
     def list_loaded_models(self) -> List[Dict[str, Any]]:
         return [model.get_info() for model in self.models.values()]
 
-    def _generate_response(self, model_name: str, input_data: Any, max_tokens: Optional[int], temperature: float, model_type: Optional[str], **kwargs) -> Optional[str]:
+    def _generate_response(self, model_name: str, input_data: Any, max_tokens: Optional[int], temperature: float, model_type: Optional[str], method: str, **kwargs) -> Optional[Any]:
         try:
             model = self.get_model(model_name, model_type)
             if model is None:
                 logger.error(f"Model {model_name} not loaded")
                 return f"Model {model_name} not loaded"
 
-            # handler = PromptHandlerFactory.get_handler(model.get_info()['type'])
-            # formatted_input = getattr(handler, handler_method)(input_data)
-
-            return model.generate_chat(input_data, max_tokens, temperature, **kwargs)
+            if method == "generate":
+                return model.generate(input_data, max_tokens, temperature, **kwargs)
+            elif method == "chat":
+                return model.generate_chat(input_data, max_tokens, temperature, **kwargs)
+            else:
+                logger.error(f"Unsupported method: {method}")
+                return f"Unsupported method: {method}"
         except Exception as e:
             logger.error(f"Error generating response with model {model_name}: {str(e)}")
             return f"Error generating response: {str(e)}"
 
-    def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> str:
-        return self._generate_response(model_name, prompt, max_tokens, temperature, model_type, **kwargs)
+    def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> Any:
+        return self._generate_response(model_name, prompt, max_tokens, temperature, model_type, method="generate", **kwargs)
 
-    def generate_chat(self, model_name: str, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> Optional[str]:
+    def generate_chat(self, model_name: str, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> Optional[object]:
         messages_dict = [msg.dict() for msg in messages]
-        return self._generate_response(model_name, messages_dict, max_tokens, temperature, model_type, **kwargs)
-
+        try:
+            resp = self._generate_response(model_name, messages_dict, max_tokens, temperature, model_type, method="chat", **kwargs)
+            return resp
+        except Exception as e:
+            logger.error(f"Error generating chat with model {model_name}: {str(e)}")
+            return f"Error generating chat: {str(e)}"
 
 model_manager = ModelManager()

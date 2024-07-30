@@ -17,14 +17,43 @@ class ChatRequest(PBaseModel):
     presence_penalty: Optional[float] = None
     frequency_penalty: Optional[float] = None
     user: Optional[str] = None
-    stream: Optional[bool] = False
-    logit_bias: Optional[Dict[str, float]] = None
-    logprobs: Optional[int] = None
-    echo: Optional[bool] = False
-    best_of: Optional[int] = None
+    # stream: Optional[bool] = False
+    # logit_bias: Optional[Dict[str, float]] = None
+    # logprobs: Optional[int] = None
+    # echo: Optional[bool] = False
+    # best_of: Optional[int] = None
 
 class ChatResponse(PBaseModel):
-    response: str
+    message: str
+    tool_calls: List[Dict[str, Any]] = Field(default_factory=list)
+    done_reason: Optional[str] = None
+    done: Optional[bool] = None
+    total_duration: Optional[int] = None
+    load_duration: Optional[int] = None
+    prompt_eval_count: Optional[int] = None
+    prompt_eval_duration: Optional[int] = None
+    eval_count: Optional[int] = None
+    eval_duration: Optional[int] = None
+
+    @classmethod
+    def from_model_response(cls, response: Dict[str, Any]) -> 'ChatResponse':
+        if isinstance(response.get("message"), dict):
+            message_content = response["message"].get("content", "")
+        else:
+            message_content = response.get("message", "")
+
+        return cls(
+            message=message_content,
+            tool_calls=response.get("tool_calls", []),
+            done_reason=response.get("done_reason"),
+            done=response.get("done"),
+            total_duration=response.get("total_duration"),
+            load_duration=response.get("load_duration"),
+            prompt_eval_count=response.get("prompt_eval_count"),
+            prompt_eval_duration=response.get("prompt_eval_duration"),
+            eval_count=response.get("eval_count"),
+            eval_duration=response.get("eval_duration")
+        )
 
 class EmbeddingRequest(PBaseModel):
     text: str

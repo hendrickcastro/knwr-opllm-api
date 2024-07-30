@@ -1,8 +1,8 @@
 @baseUrl = http://localhost:8000
 # @model_name = gpt-4o-mini
-@model_name = llama3.1:latest
+# @model_name = llama3.1:latest
 
-# @model_name = claude-3-5-sonnet-20240620
+@model_name = claude-3-5-sonnet-20240620
 
 
 POST {{baseUrl}}/chat

@@ -38,12 +38,12 @@ async def chat(request: ChatRequest):
         kwargs = request.dict(exclude={"model_name", "messages"})
         
         response = model_manager.generate_chat(
-            model_name = request.model_name,
-            messages = request.messages,
+            model_name=request.model_name,
+            messages=request.messages,
             **kwargs
         )
-    
-        return ChatResponse(response=response)
+        
+        return ChatResponse.from_model_response(response)
     except Exception as e:
         logger.error(f"Error in chat endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -28,16 +28,13 @@ class OllamaModel(IClient):
             logger.error(f"Error generating text with Ollama model {self.model_name}: {str(e)}")
             raise
 
-    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> str:
+    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Optional[object]:
         try:
             response = ollama.chat(
                 model=self.model_name,
                 messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                **kwargs
             )
-            return response['message'].strip()
+            return response
         except Exception as e:
             logger.error(f"Error generating chat with Ollama model {self.model_name}: {str(e)}")
             raise

@@ -15,7 +15,7 @@ class OpenAIModel(IClient):
         # OpenAI models don't need to be explicitly loaded
         pass
 
-    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> str:
+    def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Optional[object]:
         for key, value in kwargs.items():
             print(f"{key}: {value}")
         try:
@@ -26,7 +26,18 @@ class OpenAIModel(IClient):
                 temperature=temperature,
                 **kwargs
             )
-            return response.choices[0].message.content.strip()
+            
+            # Convert the response to a dictionary
+            response_dict = {
+                "message": {"content": response.choices[0].message.content},
+                "done_reason": response.choices[0].finish_reason,
+                "done": True,
+                "total_duration": response.usage.total_tokens,  # This is not exactly duration, but a close approximation
+                "prompt_eval_count": response.usage.prompt_tokens,
+                "eval_count": response.usage.completion_tokens,
+            }
+            
+            return response_dict
         except Exception as e:
             logger.error(f"Error generating chat with OpenAI model {self.model_name}: {str(e)}")
             raise
