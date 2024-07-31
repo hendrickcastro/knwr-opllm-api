@@ -39,8 +39,11 @@ class ChatResponse(PBaseModel):
     def from_model_response(cls, response: Dict[str, Any]) -> 'ChatResponse':
         if isinstance(response.get("message"), dict):
             message_content = response["message"].get("content", "")
+        elif isinstance(response.get("message"), list):
+            # Si es una lista, tomamos el primer elemento
+            message_content = response["message"][0].text if hasattr(response["message"][0], 'text') else str(response["message"][0])
         else:
-            message_content = response.get("message", "")
+            message_content = str(response.get("message", ""))
 
         return cls(
             message=message_content,
