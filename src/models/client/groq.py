@@ -3,8 +3,7 @@ from ...contract.IClient import IClient
 from ...core.config import settings
 from ...core.utils import setup_logger
 from groq import Groq
-from ...core.storage.firebase import firebase_connection
-import time
+from ...core.common.functions import ToolFunctions
 
 logger = setup_logger(__name__)
 
@@ -42,19 +41,7 @@ class GroqModel(IClient):
             
             # Guardar la interacción en Firebase
             # if kwargs has session object with userId and sessionId properties then save the interaction
-            if "session" in kwargs and kwargs["session"] is not None and "userId" in kwargs["session"] and "sessionId" in kwargs["session"]:
-                session = kwargs["session"]
-                ## get last item from message extract the content
-                llm_data = {
-                    "model": self.model_name,
-                    "request": messages[-1]["content"],
-                    "messages": messages,
-                    "response": response_dict["message"]["content"],
-                    "options": filtered_kwargs,
-                    "timestamp": time.time()
-                }
-                doc_id = firebase_connection.add_document(f"{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}", llm_data)
-                logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
+            ToolFunctions.sendToFirebase(self, messages, kwargs, filtered_kwargs, response_dict["message"]['content'], logger)
             
             return response_dict
         except Exception as e:

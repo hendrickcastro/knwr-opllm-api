@@ -66,7 +66,7 @@ class HuggingFaceModel(IClient):
                     "response": response_dict["message"]["content"],
                     "timestamp": time.time()
                 }
-                doc_id = firebase_connection.add_document(f"{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}", llm_data)
+                doc_id = firebase_connection.add_document(f'{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}', llm_data)
                 logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
             
             return response_dict

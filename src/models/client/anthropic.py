@@ -3,9 +3,8 @@ from anthropic import Anthropic
 from ...contract.IClient import IClient
 from ...core.utils import setup_logger
 from ...core.config import settings
+from ...core.common.functions import ToolFunctions
 import json
-from ...core.storage.firebase import firebase_connection
-import time
 
 logger = setup_logger(__name__)
 
@@ -59,19 +58,7 @@ class AnthropicModel(IClient):
             
             # Guardar la interacción en Firebase
             # if kwargs has session object with userId and sessionId properties then save the interaction
-            if "session" in kwargs and kwargs["session"] is not None and "userId" in kwargs["session"] and "sessionId" in kwargs["session"]:
-                session = kwargs["session"]
-                ## get last item from message extract the content
-                llm_data = {
-                    "model": self.model_name,
-                    "request": messages[-1]["content"],
-                    "messages": messages,
-                    "response": resp["message"],
-                    "options": filtered_kwargs,
-                    "timestamp": time.time()
-                }
-                doc_id = firebase_connection.add_document(f"{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}", llm_data)
-                logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
+            ToolFunctions.sendToFirebase(self, messages, kwargs, filtered_kwargs, resp['message'], logger)
                 
             return resp
         except Exception as e:
