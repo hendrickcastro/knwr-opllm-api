@@ -1,12 +1,12 @@
 
 ## Archivo: autoagent.py
-### Ruta Relativa: ../api\agents\autoagent.py
+### Ruta Relativa: ../src\core\agents\autoagent.py
 
 ```python
 from typing import Dict, Any
-from models.model_manager import model_manager
-from prompts.prompt_handler import prompt_handler
-from core.utils import setup_logger
+from ...models.model_manager import model_manager
+from ...models.prompts.prompt_handler import prompt_handler
+from ...core.utils import setup_logger
 
 logger = setup_logger(__name__)
 

@@ -1,52 +1,68 @@
 {
-  "agents": {
-    "autoagent.py": "file"
-  },
   "api": {
-    "routes.py": "file"
+    "routes": {
+      "router.py": "file",
+      "router_check.py": "file",
+      "router_storage.py": "file"
+    }
   },
-  "chunks": {
-    "chunk_handler.py": "file",
-    "code_chunks.py": "file",
-    "text_chunks.py": "file"
+  "contract": {
+    "IClient.py": "file"
   },
   "core": {
+    "agents": {
+      "autoagent.py": "file"
+    },
+    "chunks": {
+      "chunk_handler.py": "file",
+      "code_chunks.py": "file",
+      "text_chunks.py": "file"
+    },
     "config.py": "file",
+    "storage": {
+      "database.py": "file",
+      "models.py": "file"
+    },
     "utils.py": "file"
   },
-  "create.sh": "file",
-  "Dockerfile": "file",
-  "main.py": "file",
+  "entity": {
+    "Class.py": "file"
+  },
   "models": {
-    "anthropic_model.py": "file",
-    "base_model.py": "file",
-    "embeddings.py": "file",
-    "grok_model.py": "file",
-    "huggingface_model.py": "file",
-    "model_manager.py": "file",
-    "ollama_model.py": "file",
-    "openai_model.py": "file"
-  },
-  "prompts": {
-    "anthropic_prompt_handler.py": "file",
-    "base_prompt_handler.py": "file",
-    "baul": {
-      "prompt_handler.py": "file",
-      "prompt_processor.py": "file"
+    "client": {
+      "anthropic.py": "file",
+      "groq.py": "file",
+      "huggingface.py": "file",
+      "ollama.py": "file",
+      "ollamaSDK.py": "file",
+      "ollamaSDKV2.py": "file",
+      "openai.py": "file"
     },
-    "grok_prompt_handler.py": "file",
-    "huggingface_prompt_handler.py": "file",
-    "ollama_prompt_handler.py": "file",
-    "openai_prompt_handler.py": "file",
-    "prompt_handler.py": "file",
-    "prompt_handler_factory.py": "file"
+    "embeddings.py": "file",
+    "model_manager.py": "file",
+    "prompts": {
+      "anthropic_prompt.py": "file",
+      "base_prompt.py": "file",
+      "grok_prompt.py": "file",
+      "huggingface_prompt.py": "file",
+      "ollama_prompt.py": "file",
+      "openai_prompt.py": "file",
+      "prompt_factory.py": "file",
+      "prompt_handler.py": "file"
+    }
   },
-  "public": {
-    "docs": {}
-  },
-  "storage": {
-    "database.py": "file",
-    "models.py": "file"
-  },
-  "up.sh": "file"
+  "tools": {
+    "deletePackage.sh": "file",
+    "downloadHFModel.py": "file",
+    "langchain": {
+      "index.py": "file",
+      "ollama.py": "file"
+    },
+    "ollamaStream.py": "file",
+    "test-any.py": "file",
+    "test.py": "file",
+    "testGrok.py": "file",
+    "testLlama3.1Tools.py": "file",
+    "win-h-sleep.ps1": "file"
+  }
 }

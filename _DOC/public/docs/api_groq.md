@@ -1,10 +1,13 @@
+
+## Archivo: groq.py
+### Ruta Relativa: ../src\models\client\groq.py
+
+```python
 from typing import Any, Dict, Optional, List
 from ...contract.IClient import IClient
 from ...core.config import settings
 from ...core.utils import setup_logger
-from ...core.storage.firebase import firebase_connection
 from groq import Groq
-import time
 
 logger = setup_logger(__name__)
 
@@ -39,16 +42,6 @@ class GroqModel(IClient):
                 "prompt_eval_count": response.usage.prompt_tokens,
                 "eval_count": response.usage.completion_tokens,
             }
-            
-            # Guardar la interacción en Firebase
-            llm_data = {
-                "model": self.model_name,
-                "messages": messages,
-                "response": response_dict["message"]["content"],
-                "timestamp": time.time()
-            }
-            doc_id = firebase_connection.add_document("llm", llm_data)
-            logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
             
             return response_dict
         except Exception as e:
@@ -112,3 +105,4 @@ class GroqModel(IClient):
     def generate_prompts(self, messages: List[Dict[str, str]]) -> str:
         # Placeholder implementation as details are needed
         return " ".join([message["content"] for message in messages])
+```

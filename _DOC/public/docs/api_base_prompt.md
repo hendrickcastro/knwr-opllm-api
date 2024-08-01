@@ -1,6 +1,6 @@
 
-## Archivo: base_prompt_handler.py
-### Ruta Relativa: ../api\prompts\base_prompt_handler.py
+## Archivo: base_prompt.py
+### Ruta Relativa: ../src\models\prompts\base_prompt.py
 
 ```python
 from abc import ABC, abstractmethod

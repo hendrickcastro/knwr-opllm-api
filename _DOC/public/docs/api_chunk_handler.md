@@ -1,12 +1,12 @@
 
 ## Archivo: chunk_handler.py
-### Ruta Relativa: ../api\chunks\chunk_handler.py
+### Ruta Relativa: ../src\core\chunks\chunk_handler.py
 
 ```python
 from typing import List, Union
 from .text_chunks import text_chunker
 from .code_chunks import code_chunker
-from core.utils import setup_logger
+from ..utils import setup_logger
 
 logger = setup_logger(__name__)
 

@@ -26,7 +26,7 @@ def get_directory_structure(dir_path, exclude_folders=[], exclude_files=[]):
     return result
 
 # Ruta del directorio a analizar
-directory_path = '../api'  # Puedes cambiar esto por cualquier directorio
+directory_path = '../src'  # Puedes cambiar esto por cualquier directorio
 
 # Lista de carpetas a excluir
 exclude_folders = [

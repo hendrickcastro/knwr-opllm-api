@@ -95,8 +95,8 @@ class ModelManager:
             else:
                 logger.error(f"Unsupported method: {method}")
                 return f"Unsupported method: {method}"
-        except Exception:
-            raise
+        except Exception as e:
+            raise e
 
     def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> Any:
         return self._generate_response(model_name, prompt, max_tokens, temperature, model_type, method="generate", **kwargs)

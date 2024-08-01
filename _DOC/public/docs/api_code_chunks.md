@@ -1,11 +1,11 @@
 
 ## Archivo: code_chunks.py
-### Ruta Relativa: ../api\chunks\code_chunks.py
+### Ruta Relativa: ../src\core\chunks\code_chunks.py
 
 ```python
 import re
 from typing import List
-from core.utils import setup_logger
+from ..utils import setup_logger
 
 logger = setup_logger(__name__)
 

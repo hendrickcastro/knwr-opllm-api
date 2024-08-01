@@ -19,7 +19,7 @@ class OpenAIModel(IClient):
         for key, value in kwargs.items():
             print(f"{key}: {value}")
         try:
-            filter_kwargs = self._filter_kwargs(kwargs)
+            filter_kwargs = self._filter_kwargs(**kwargs)
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
@@ -55,7 +55,7 @@ class OpenAIModel(IClient):
             logger.error(f"Error generating text with OpenAI model {self.model_name}: {str(e)}")
             raise
         
-    def _filter_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    def _filter_kwargs(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
         accepted_params = [
             'model', 'temperature', 'top_p', 'n', 'stream', 'stop', 'max_tokens',
             'presence_penalty', 'frequency_penalty', 'logit_bias', 'user',

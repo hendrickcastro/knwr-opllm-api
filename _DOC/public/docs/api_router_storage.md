@@ -1,54 +1,22 @@
+
+## Archivo: router_storage.py
+### Ruta Relativa: ../src\api\routes\router_storage.py
+
+```python
 from fastapi import APIRouter, HTTPException
-from typing import List, Dict
-from ..core.chunks.chunk_handler import chunk_handler
-from ..core.agents.autoagent import auto_agent_factory
-from ..models.model_manager import model_manager
-from ..models.embeddings import embedding_generator
-from ..core.storage.database import db
-from ..entity.Class import ChatResponse, ChatRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, AutoAgentRequest, AutoAgentResponse, GenerateRequest, GenerateResponse, CompareEmbeddingsRequest, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
+from ...models.embeddings import embedding_generator
+from ...core.storage.database import db
+from ...models.model_manager import model_manager
+from ...core.chunks.chunk_handler import chunk_handler
+from ...entity.Class import CompareEmbeddingsRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
 import logging
 import traceback
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router_storage = APIRouter()
 
-@router.post("/generate", response_model=GenerateResponse)
-async def generate_text(request: GenerateRequest):
-    try:
-        logger.info(f"Received generate request: {request.dict()}")
-        kwargs = {}
-
-        kwargs['temperature'] = request.temperature
-        generated_text = model_manager.generate(
-            request.model,
-            request.prompt,
-            max_tokens=request.max_tokens,
-            **kwargs
-        )
-        return GenerateResponse(generated_text=generated_text)
-    except Exception as e:
-        logger.error(f"Error generating text: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-    
-@router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    try:
-        logger.info(f"Received chat request for model: {request.model_name}")
-        kwargs = request.dict(exclude={"model_name", "messages"})
-        
-        response = model_manager.generate_chat(
-            model_name=request.model_name,
-            messages=request.messages,
-            **kwargs
-        )
-        
-        return ChatResponse.from_model_response(response)
-    except Exception as e:
-        logger.error(f"Error in chat endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/embedding", response_model=EmbeddingResponse)
+@router_storage.post("/embedding", response_model=EmbeddingResponse)
 async def generate_embedding(request: EmbeddingRequest):
     try:
         embedding = embedding_generator.generate_embedding(request.text)
@@ -56,7 +24,7 @@ async def generate_embedding(request: EmbeddingRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/chunk", response_model=ChunkResponse)
+@router_storage.post("/chunk", response_model=ChunkResponse)
 async def create_chunks(request: ChunkRequest):
     try:
         chunks = chunk_handler.process_chunks(request.content, request.content_type)
@@ -64,45 +32,7 @@ async def create_chunks(request: ChunkRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/autoagent", response_model=AutoAgentResponse)
-async def process_auto_agent(request: AutoAgentRequest):
-    try:
-        agent = auto_agent_factory.create_agent(request.model_name, request.task_description)
-        response = agent.process_input(request.user_input)
-        return AutoAgentResponse(response=response)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/models", response_model=List[Dict[str, str]])
-async def list_models():
-    try:
-        return model_manager.list_loaded_models()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/load_model")
-async def load_model(model_name: str, model_type: str):
-    try:
-        model_manager.load_model(model_name, model_type)
-        return {"message": f"Model {model_name} loaded successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@router.get("/check_ollama")
-async def check_ollama():
-    try:
-        return model_manager.check_ollama_connection()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/check_ollama_models")
-async def check_ollama_models():
-    try:
-        return model_manager.list_ollama_models()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/compare_embeddings", response_model=CompareEmbeddingsResponse)
+@router_storage.post("/compare_embeddings", response_model=CompareEmbeddingsResponse)
 async def compare_embeddings(request: CompareEmbeddingsRequest):
     try:
         embedding1 = embedding_generator.generate_embedding(request.text1)
@@ -112,7 +42,7 @@ async def compare_embeddings(request: CompareEmbeddingsRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/store_embedding", response_model=StoreEmbeddingResponse)
+@router_storage.post("/store_embedding", response_model=StoreEmbeddingResponse)
 async def store_embedding(request: StoreEmbeddingRequest):
     try:
         embedding = embedding_generator.generate_embedding(request.text)
@@ -121,7 +51,7 @@ async def store_embedding(request: StoreEmbeddingRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/search_similar_embeddings", response_model=SearchSimilarEmbeddingsResponse)
+@router_storage.post("/search_similar_embeddings", response_model=SearchSimilarEmbeddingsResponse)
 async def search_similar_embeddings(request: SearchSimilarEmbeddingsRequest):
     try:
         logger.info(f"Received request to search similar embeddings for text: {request.text[:50]}...")
@@ -153,7 +83,7 @@ async def search_similar_embeddings(request: SearchSimilarEmbeddingsRequest):
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
     
-@router.post("/rag", response_model=RAGResponse)
+@router_storage.post("/rag", response_model=RAGResponse)
 async def rag_query(request: RAGRequest):
     try:
         # 1. Generate embedding for the query
@@ -177,3 +107,4 @@ async def rag_query(request: RAGRequest):
     except Exception as e:
         logger.error(f"Error in RAG query: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+```

@@ -1,6 +1,6 @@
 
 ## Archivo: models.py
-### Ruta Relativa: ../api\storage\models.py
+### Ruta Relativa: ../src\core\storage\models.py
 
 ```python
 from pydantic import BaseModel, Field

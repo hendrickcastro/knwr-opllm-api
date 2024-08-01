@@ -1,12 +1,13 @@
 
 ## Archivo: prompt_handler.py
-### Ruta Relativa: ../api\prompts\prompt_handler.py
+### Ruta Relativa: ../src\models\prompts\prompt_handler.py
 
 ```python
 from pydantic import BaseModel
-from models.model_manager import model_manager
-from core.utils import setup_logger
-from .prompt_handler_factory import PromptHandlerFactory
+from ..model_manager import model_manager
+from ...core.utils import setup_logger
+from .prompt_factory import PromptHandlerFactory
+from typing import List, Optional
 
 logger = setup_logger(__name__)
 
@@ -18,25 +19,24 @@ class PromptHandler:
     def __init__(self):
         self.model_manager = model_manager
 
-    def process_prompt(self, model_name: str, prompt_type: str, **kwargs) -> str:
+    def process_prompt(self, model_name: str, prompt_type: str, messages: List[Message], max_tokens: Optional[int] = None, temperature: float = 0.7) -> str:
         try:
             model = self.model_manager.get_model(model_name)
             model_type = model.get_info()['type']
             handler = PromptHandlerFactory.get_handler(model_type)
             
-            if prompt_type == "chat":
-                messages = kwargs.get('messages', [])
-                formatted_messages = [msg.dict() for msg in messages]
-                formatted_prompt = handler.format_prompt(formatted_messages)
-            else:
-                prompt = kwargs.get('input', '')
-                formatted_prompt = handler.format_prompt([{"role": "user", "content": prompt}])
+            formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
             
-            return model.generate(formatted_prompt)
+            if model_type == "openai":
+                # Para modelos de OpenAI, pasamos los mensajes directamente
+                return model.generate(formatted_messages, max_tokens=max_tokens, temperature=temperature)
+            else:
+                # Para otros tipos de modelos, usamos el handler para formatear el prompt
+                formatted_prompt = handler.format_prompt(formatted_messages)
+                return model.generate(formatted_prompt, max_tokens=max_tokens, temperature=temperature)
         except Exception as e:
             logger.error(f"Error processing prompt: {str(e)}")
             raise
 
 prompt_handler = PromptHandler()
-
 ```

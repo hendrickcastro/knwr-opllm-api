@@ -1,12 +1,12 @@
 
 ## Archivo: database.py
-### Ruta Relativa: ../api\storage\database.py
+### Ruta Relativa: ../src\core\storage\database.py
 
 ```python
 from pymongo import MongoClient
 from bson import ObjectId
-from core.config import settings
-from core.utils import setup_logger
+from src.core.config import settings
+from src.core.utils import setup_logger
 from typing import Dict, Any, List
 import traceback
 
