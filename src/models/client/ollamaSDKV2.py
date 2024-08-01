@@ -30,14 +30,25 @@ class OllamaModel(IClient):
 
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Optional[object]:
         try:
+            filter_kwargs = self._filter_kwargs(**kwargs)
             response = ollama.chat(
                 model=self.model_name,
                 messages=messages,
+                **filter_kwargs
             )
             return response
         except Exception as e:
             logger.error(f"Error generating chat with Ollama model {self.model_name}: {str(e)}")
             raise
+        
+    def _filter_kwargs(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        accepted_params = [
+            'num_predict', 'top_k', 'temperature', 'repeat_penalty',
+            'repeat_last_n', 'seed', 'stop', 'num_ctx', 'num_batch',
+            'num_gpu', 'main_gpu', 'low_vram', 'f16_kv', 'logits_all',
+            'vocab_only', 'use_mmap'
+        ]
+        return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:
         return {"name": self.model_name, "type": "ollama"}

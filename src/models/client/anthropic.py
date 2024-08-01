@@ -44,7 +44,7 @@ class AnthropicModel(IClient):
             
             system_message = system_message.strip()
             
-            filtered_kwargs = self._filter_kwargs(kwargs)
+            filtered_kwargs = self._filter_kwargs(**kwargs)
             response = self.client.messages.create(
                 model=self.model_name,
                 max_tokens=max_tokens or 1024,
@@ -79,10 +79,10 @@ class AnthropicModel(IClient):
             "eval_duration": None,
         }
         
-    def _filter_kwargs(self, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    def _filter_kwargs(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
         # Lista de parámetros aceptados por Anthropic
         accepted_params = ['temperature', 'top_p', 'top_k', 'max_tokens', 'stream', 'metadata']
-        return {k: v for k, v in kwargs.items() if k in accepted_params}
+        return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:
         return {"name": self.model_name, "type": "anthropic"}

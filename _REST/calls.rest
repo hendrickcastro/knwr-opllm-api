@@ -18,7 +18,7 @@ POST {{baseUrl}}/load_model?model_name=mistral&model_type=ollama
 POST {{baseUrl}}/load_model?model_name=gpt-4o-mini&model_type=openai
 
 ### Load HuggingFace model
-POST {{baseUrl}}/load_model?model_name=gpt2&model_type=huggingface
+POST {{baseUrl}}/load_model?model_name=mistralai/Mixtral-8x7B-Instruct-v0.1&model_type=huggingface
 
 ### Generate text with OpenAI model
 POST {{baseUrl}}/generate

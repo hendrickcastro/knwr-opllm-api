@@ -1,8 +1,9 @@
 @baseUrl = http://localhost:8000
 # @model_name = gpt-4o-mini
-# @model_name = llama3.1:latest
-
-@model_name = claude-3-5-sonnet-20240620
+@model_name = llama3.1:latest
+# @model_name = claude-3-5-sonnet-20240620
+# @model_name = llama-3.1-70b-versatile
+# @model_name = mistralai/Mixtral
 
 
 POST {{baseUrl}}/chat
@@ -20,7 +21,6 @@ Content-Type: application/json
     "temperature": 0,
     "top_p": 0.9,
     "n": 1,
-    "stop": ["\n", " user:"],
     "presence_penalty": 0.6,
     "frequency_penalty": 0.0,
     "user": "example_user"

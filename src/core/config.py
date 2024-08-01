@@ -16,7 +16,7 @@ class Settings:
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY")
     HUGGINGFACE_API_KEY: str = os.getenv("HUGGINGFACE_API_KEY")
-    GROK_API_KEY: str = os.getenv("GROK_API_KEY")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
 
     MODEL_CONFIGS: Dict[str, Dict[str, Any]] = {
         "ollama": {
@@ -34,19 +34,20 @@ class Settings:
             "base_url": "https://api.huggingface.co",
             "api_key": HUGGINGFACE_API_KEY,
         },
-        "grok": {
-            "base_url": "https://api.grok.com",
-            "api_key": GROK_API_KEY
+        "groq": {
+            "base_url": "https://api.groq.com",
+            "api_key": GROQ_API_KEY
         },
     }
     
     DEFAULT_MODELS: Dict[str, str] = {
         "gpt-4o-mini": "openai",
         "gpt-4o-coder": "grok",
-        "microsoft/codebert-base": "huggingface",
+        "mistralai/Mixtral-8x7B-Instruct-v0.1": "huggingface",
         "claude-3-5-sonnet-20240620": "anthropic",
-        "llama3-70b-8192": "grok",  # Asegúrate de que esté aquí
-        "llama3-70b-8192:latest": "grok",  # Asegúrate de que esté aquí también
+        "llama-3.1-70b-versatile": "groq",  # Asegúrate de que esté aquí
+        "llama-3.1-405b-reasoning": "groq",  # Asegúrate de que esté aquí también
+        "llama3-groq-70b-8192-tool-use-preview": "groq"
     }
 
     @property

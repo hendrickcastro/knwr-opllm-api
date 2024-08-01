@@ -5,7 +5,7 @@ from .client.ollamaSDKV2 import OllamaModel
 from .client.huggingface import HuggingFaceModel
 from .client.openai import OpenAIModel
 from .client.anthropic import AnthropicModel
-from .client.grok import GrokModel
+from .client.groq import GroqModel
 from ..core.utils import setup_logger
 from ..core.config import settings
 
@@ -43,7 +43,7 @@ class ModelManager:
             "huggingface": HuggingFaceModel,
             "openai": OpenAIModel,
             "anthropic": AnthropicModel,
-            "grok": GrokModel
+            "groq": GroqModel
         }
 
         if model_type not in model_classes:
@@ -95,9 +95,8 @@ class ModelManager:
             else:
                 logger.error(f"Unsupported method: {method}")
                 return f"Unsupported method: {method}"
-        except Exception as e:
-            logger.error(f"Error generating response with model {model_name}: {str(e)}")
-            return f"Error generating response: {str(e)}"
+        except Exception:
+            raise
 
     def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> Any:
         return self._generate_response(model_name, prompt, max_tokens, temperature, model_type, method="generate", **kwargs)
@@ -108,7 +107,6 @@ class ModelManager:
             resp = self._generate_response(model_name, messages_dict, max_tokens, temperature, model_type, method="chat", **kwargs)
             return resp
         except Exception as e:
-            logger.error(f"Error generating chat with model {model_name}: {str(e)}")
-            return f"Error generating chat: {str(e)}"
+            raise e
 
 model_manager = ModelManager()
