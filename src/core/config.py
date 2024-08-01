@@ -54,6 +54,10 @@ class Settings:
     @property
     def DEBUGG(self) -> str:
         return self._get_config("DEBUGG") == "development"
+    
+    @property
+    def ROOTCOLECCTION(self) -> str:
+        return self._get_config("ROOTCOLECCTION")
 
     @property
     def MODEL_CONFIGS(self) -> Dict[str, Dict[str, Any]]:

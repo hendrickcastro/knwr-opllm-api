@@ -4,6 +4,8 @@ from ...core.config import settings
 from ...core.utils import setup_logger
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModel
 import torch
+from ...core.storage.firebase import firebase_connection
+import time
 
 logger = setup_logger(__name__)
 
@@ -52,6 +54,21 @@ class HuggingFaceModel(IClient):
                 "eval_count": len(outputs[0]) - len(inputs.input_ids[0]),
             }
             
+            # Guardar la interacción en Firebase
+            # if kwargs has session object with userId and sessionId properties then save the interaction
+            if "session" in kwargs and kwargs["session"] is not None and "userId" in kwargs["session"] and "sessionId" in kwargs["session"]:
+                session = kwargs["session"]
+                ## get last item from message extract the content
+                llm_data = {
+                    "model": self.model_name,
+                    "request": messages[-1]["content"],
+                    "messages": messages,
+                    "response": response_dict["message"]["content"],
+                    "timestamp": time.time()
+                }
+                doc_id = firebase_connection.add_document(f"{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}", llm_data)
+                logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
+            
             return response_dict
         except Exception as e:
             logger.error(f"Error generating chat with HuggingFace model {self.model_name}: {str(e)}")
@@ -86,7 +103,7 @@ class HuggingFaceModel(IClient):
             'exponential_decay_length_penalty', 'suppress_tokens', 'begin_suppress_tokens',
             'forced_decoder_ids', 'sequence_bias', 'guidance_scale', 'low_memory'
         ]
-        return {k: v for k, v in kwargs.items() if k in accepted_params}
+        return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:
         return {"name": self.model_name, "type": "huggingface"}

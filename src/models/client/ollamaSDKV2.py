@@ -4,6 +4,8 @@ from typing import Any, Dict, Optional, List
 from ...contract.IClient import IClient
 from ...core.config import settings
 from ...core.utils import setup_logger
+from ...core.storage.firebase import firebase_connection
+import time
 
 logger = setup_logger(__name__)
 
@@ -20,8 +22,6 @@ class OllamaModel(IClient):
             response = ollama.generate(
                 model=self.model_name,
                 prompt=prompt,
-                max_tokens=max_tokens,
-                temperature=temperature
             )
             return response['text'].strip()
         except Exception as e:
@@ -30,24 +30,38 @@ class OllamaModel(IClient):
 
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Optional[object]:
         try:
-            filter_kwargs = self._filter_kwargs(**kwargs)
+            filtered_kwargs = self._filter_kwargs(**kwargs)
             response = ollama.chat(
                 model=self.model_name,
                 messages=messages,
-                **filter_kwargs
+                options={ **filtered_kwargs, temperature: temperature }
             )
+            
+            # Guardar la interacción en Firebase
+            # if kwargs has session object with userId and sessionId properties then save the interaction
+            if "session" in kwargs and kwargs["session"] is not None and "userId" in kwargs["session"] and "sessionId" in kwargs["session"]:
+                session = kwargs["session"]
+                llm_data = {
+                    "model": self.model_name,
+                    "request": messages[-1]["content"],
+                    "messages": messages,
+                    "response": response["message"]["content"],
+                    "options": filtered_kwargs,
+                    "timestamp": time.time()
+                }
+                doc_id = firebase_connection.add_document(f"{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}", llm_data)
+                logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
+                
             return response
         except Exception as e:
             logger.error(f"Error generating chat with Ollama model {self.model_name}: {str(e)}")
             raise
         
     def _filter_kwargs(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
-        accepted_params = [
-            'num_predict', 'top_k', 'temperature', 'repeat_penalty',
-            'repeat_last_n', 'seed', 'stop', 'num_ctx', 'num_batch',
-            'num_gpu', 'main_gpu', 'low_vram', 'f16_kv', 'logits_all',
-            'vocab_only', 'use_mmap'
-        ]
+        accepted_params = [ "num_keep", "seed", "num_predict", "top_k", "top_p", "min_p", "tfs_z", "typical_p", "repeat_last_n",
+        "temperature", "repeat_penalty", "presence_penalty", "frequency_penalty", "mirostat", "mirostat_tau", "mirostat_eta",
+        "penalize_newline", "stop", "numa", "num_ctx", "num_batch", "num_gpu", "main_gpu", "low_vram", "f16_kv", "vocab_only",
+        "use_mmap", "use_mlock", "num_thread" ]
         return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:

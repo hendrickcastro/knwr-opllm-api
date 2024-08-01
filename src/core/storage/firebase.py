@@ -50,9 +50,31 @@ class FirebaseConnection:
 
         self.config_ref.on_snapshot(on_snapshot)
 
-    def add_document(self, collection: str, data: Dict[str, Any]) -> str:
-        doc_ref = self.db.collection(collection).add(data)
-        return doc_ref[1].id
+    def add_document(self, collection_path: str, data: Dict[str, Any]) -> str:
+        # Dividimos la ruta en sus componentes
+        path_parts = collection_path.split('/')
+        
+        # Comenzamos con la referencia a la base de datos
+        current_ref = self.db
+        
+        # Iteramos a través de las partes de la ruta
+        for i, part in enumerate(path_parts):
+            if i % 2 == 0:
+                # Es una colección
+                current_ref = current_ref.collection(part)
+            else:
+                # Es un documento
+                current_ref = current_ref.document(part)
+        
+        # Añadimos los datos al último nivel
+        if isinstance(current_ref, firestore.CollectionReference):
+            # Si terminamos en una colección, añadimos un nuevo documento
+            doc_ref = current_ref.add(data)
+            return doc_ref[1].id
+        else:
+            # Si terminamos en un documento, establecemos los datos
+            current_ref.set(data)
+            return current_ref.id
 
     def get_document(self, collection: str, doc_id: str) -> Dict[str, Any]:
         doc_ref = self.db.collection(collection).document(doc_id)

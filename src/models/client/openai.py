@@ -3,6 +3,9 @@ from typing import Any, Dict, Optional, List
 from ...contract.IClient import IClient
 from ...core.config import settings
 from ...core.utils import setup_logger
+from ...core.storage.firebase import firebase_connection
+import time
+
 
 logger = setup_logger(__name__)
 
@@ -16,16 +19,18 @@ class OpenAIModel(IClient):
         pass
 
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Optional[object]:
-        for key, value in kwargs.items():
-            print(f"{key}: {value}")
+        if (settings.DEBUGG):
+            for key, value in kwargs.items():
+                print(f"{key}: {value}")
+                
         try:
-            filter_kwargs = self._filter_kwargs(**kwargs)
+            filtered_kwargs = self._filter_kwargs(**kwargs)
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                **filter_kwargs
+                **filtered_kwargs
             )
             
             # Convert the response to a dictionary
@@ -37,6 +42,22 @@ class OpenAIModel(IClient):
                 "prompt_eval_count": response.usage.prompt_tokens,
                 "eval_count": response.usage.completion_tokens,
             }
+            
+            # Guardar la interacción en Firebase
+            # if kwargs has session object with userId and sessionId properties then save the interaction
+            if "session" in kwargs and kwargs["session"] is not None and "userId" in kwargs["session"] and "sessionId" in kwargs["session"]:
+                session = kwargs["session"]
+                ## get last item from message extract the content
+                llm_data = {
+                    "model": self.model_name,
+                    "request": messages[-1]["content"],
+                    "messages": messages,
+                    "response": response_dict["message"]["content"],
+                    "options": filtered_kwargs,
+                    "timestamp": time.time()
+                }
+                doc_id = firebase_connection.add_document(f"{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}", llm_data)
+                logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
             
             return response_dict
         except Exception:

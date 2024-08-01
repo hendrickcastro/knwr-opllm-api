@@ -17,14 +17,17 @@ Content-Type: application/json
         {"role": "assistant", "content": "Hola! Estoy aquí para ayudarte con cualquier pregunta que tengas."},
         {"role": "user", "content": "¿Puedes darme una recomendación de libros sobre inteligencia artificial?"}
     ],
-    "max_tokens": 500,
-    "temperature": 0,
+    "max_tokens": 150,
+    "temperature": 0.7,
     "top_p": 0.9,
     "n": 1,
     "presence_penalty": 0.6,
     "frequency_penalty": 0.0,
     "user": "knowcker",
-    "sessionId": "0001"
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-123"
+    }
 }
 
 ### Ejemplo 1: Análisis de código
@@ -42,7 +45,11 @@ Content-Type: application/json
             "role": "user",
             "content": "Analiza el siguiente código Python y explica qué hace. Luego, sugiere posibles mejoras:\n\ndef process_data(data):\n    result = []\n    for item in data:\n        if isinstance(item, (int, float)):\n            result.append(item * 2)\n        elif isinstance(item, str):\n            result.append(item.upper())\n    return result"
         }
-    ]
+    ],
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-123"
+    }
 }
 
 ### Ejemplo 2: Generación de historia
