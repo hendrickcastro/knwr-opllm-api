@@ -4,21 +4,43 @@ from src.core.config import settings
 from src.core.utils import setup_logger
 from typing import Dict, Any, List
 import traceback
+import time
 
 logger = setup_logger(__name__)
 
 class Database:
     def __init__(self):
-        try:
-            logger.info(f"Connecting to database at {settings.DATABASE_URL}")
-            self.client = MongoClient(settings.DATABASE_URL)
-            self.db = self.client[settings.MONGODB_DB]
-            self._ensure_database_exists()
-            logger.info("Database connection established successfully")
-        except Exception as e:
-            logger.error(f"Error initializing database: {str(e)}")
-            logger.error(traceback.format_exc())
-            raise
+        self.client = None
+        self.db = None
+        self.connect()
+
+    def connect(self):
+        retry_count = 0
+        max_retries = 5
+        while retry_count < max_retries:
+            try:
+                logger.info(f"Attempting to connect to database at {settings.DATABASE_URL}")
+                self.client = MongoClient(settings.DATABASE_URL, serverSelectionTimeoutMS=5000)
+                self.client.server_info()  # This will raise an exception if it can't connect
+                self.db = self.client[settings.MONGODB_DB]
+                logger.info("Database connection established successfully")
+                return
+            except Exception as e:
+                retry_count += 1
+                logger.warning(f"Failed to connect to MongoDB (attempt {retry_count}/{max_retries}): {str(e)}")
+                if retry_count == max_retries:
+                    logger.error("Max retries reached. Unable to connect to MongoDB.")
+                    # Instead of raising an exception, we'll set client and db to None
+                    self.client = None
+                    self.db = None
+                else:
+                    time.sleep(2 ** retry_count)  # Exponential backoff
+    
+    def _ensure_connection(self):
+        if self.client is None or self.db is None:
+            self.connect()
+        if self.client is None or self.db is None:
+            raise Exception("No database connection available")
 
     def _ensure_database_exists(self):
         if settings.MONGODB_DB not in self.client.list_database_names():
@@ -38,6 +60,7 @@ class Database:
 
     def store_embedding(self, embedding: List[float], metadata: Dict[str, Any]) -> str:
         try:
+            self._ensure_connection()
             collection = self.db.embeddings
             logger.info(f"Storing embedding in collection: {collection.name}")
             result = collection.insert_one({"embedding": embedding, "metadata": metadata})
@@ -47,7 +70,7 @@ class Database:
         except Exception as e:
             logger.error(f"Error storing embedding: {str(e)}")
             logger.error(traceback.format_exc())
-            raise
+            return None  # Return None instead of raising an exception
 
     def search_similar_embeddings(self, query_embedding: List[float], top_k: int = 5) -> List[Dict[str, Any]]:
         try:

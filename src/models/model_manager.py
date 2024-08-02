@@ -1,13 +1,14 @@
 import requests
 from typing import Dict, Any, List, Optional
 from ..contract.IClient import IClient
-from .client.ollamaSDKV2 import OllamaModel
+from .client.ollama import OllamaModel
 from .client.huggingface import HuggingFaceModel
 from .client.openai import OpenAIModel
 from .client.anthropic import AnthropicModel
-from .client.grok import GrokModel
+from .client.groq import GroqModel
 from ..core.utils import setup_logger
 from ..core.config import settings
+from ..core.common.functions import ToolFunctions
 
 logger = setup_logger(__name__)
 
@@ -17,6 +18,12 @@ class ModelManager:
         self.default_models = settings.DEFAULT_MODELS
         self._load_ollama_models()
         logger.info("Initializing ModelManager")
+        ToolFunctions.sync_databases(logger)
+        
+    def _filter_kwargs_for_model(self, model: IClient, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        if hasattr(model, '_filter_kwargs'):
+            return model._filter_kwargs(**kwargs)
+        return kwargs
 
     def _load_ollama_models(self) -> None:
         try:
@@ -43,7 +50,7 @@ class ModelManager:
             "huggingface": HuggingFaceModel,
             "openai": OpenAIModel,
             "anthropic": AnthropicModel,
-            "grok": GrokModel
+            "groq": GroqModel
         }
 
         if model_type not in model_classes:
@@ -87,17 +94,26 @@ class ModelManager:
             if model is None:
                 logger.error(f"Model {model_name} not loaded")
                 return f"Model {model_name} not loaded"
+            
+            filtered_kwargs = self._filter_kwargs_for_model(model, kwargs)
+            
+            if (settings.DEBUGG):
+                for key, value in filtered_kwargs.items():
+                    print(f"{key}: {value}")
 
             if method == "generate":
-                return model.generate(input_data, max_tokens, temperature, **kwargs)
+                response = model.generate(input_data, max_tokens, temperature, **filtered_kwargs)
             elif method == "chat":
-                return model.generate_chat(input_data, max_tokens, temperature, **kwargs)
+                response = model.generate_chat(input_data, max_tokens, temperature, **filtered_kwargs)
             else:
                 logger.error(f"Unsupported method: {method}")
                 return f"Unsupported method: {method}"
+            
+            ToolFunctions.saveSessionData(model_name, input_data, kwargs, filtered_kwargs, response["message"]['content'], logger)
+            
+            return response
         except Exception as e:
-            logger.error(f"Error generating response with model {model_name}: {str(e)}")
-            return f"Error generating response: {str(e)}"
+            raise e
 
     def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> Any:
         return self._generate_response(model_name, prompt, max_tokens, temperature, model_type, method="generate", **kwargs)
@@ -108,7 +124,6 @@ class ModelManager:
             resp = self._generate_response(model_name, messages_dict, max_tokens, temperature, model_type, method="chat", **kwargs)
             return resp
         except Exception as e:
-            logger.error(f"Error generating chat with model {model_name}: {str(e)}")
-            return f"Error generating chat: {str(e)}"
+            raise e
 
 model_manager = ModelManager()

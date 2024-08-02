@@ -1,70 +1,50 @@
 
 ## Archivo: model_manager.py
-### Ruta Relativa: ../api\models\model_manager.py
+### Ruta Relativa: ../src\models\model_manager.py
 
 ```python
-from typing import Dict, Any, List, Optional
-from .base_model import BaseModel
-from .ollama_model import OllamaModel
-from .huggingface_model import HuggingFaceModel
-from .openai_model import OpenAIModel
-from .anthropic_model import AnthropicModel
-from .grok_model import GrokModel
-from core.utils import setup_logger
 import requests
-from core.config import settings
+from typing import Dict, Any, List, Optional
+from ..contract.IClient import IClient
+from .client.ollama import OllamaModel
+from .client.huggingface import HuggingFaceModel
+from .client.openai import OpenAIModel
+from .client.anthropic import AnthropicModel
+from .client.groq import GroqModel
+from ..core.utils import setup_logger
+from ..core.config import settings
+from ..core.common.functions import ToolFunctions
 
 logger = setup_logger(__name__)
 
 class ModelManager:
     def __init__(self):
-        self.models: Dict[str, BaseModel] = {}
-        logger.info("Initializing ModelManager")
-        self._load_default_models()
-
-    def _load_default_models(self):
-        default_models = [
-            ("gpt-4o-mini", "openai"),
-            ("gpt-4o-coder", "grok"),
-            ("microsoft/codebert-base", "huggingface"),
-            ("claude-3-5-sonnet-20240620", "anthropic")
-        ]
-        logger.info(f"Attempting to load default models: {default_models}")
-        for model_name, model_type in default_models:
-            try:
-                logger.info(f"Attempting to load model: {model_name} of type {model_type}")
-                self.load_model(model_name, model_type)
-            except Exception as e:
-                logger.warning(f"Failed to load default model {model_name}: {str(e)}", exc_info=True)
-        
+        self.models: Dict[str, IClient] = {}
+        self.default_models = settings.DEFAULT_MODELS
         self._load_ollama_models()
+        logger.info("Initializing ModelManager")
+        
+    def _filter_kwargs_for_model(self, model: IClient, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        if hasattr(model, '_filter_kwargs'):
+            return model._filter_kwargs(**kwargs)
+        return kwargs
 
-    def _load_ollama_models(self):
-        try:
-            ollama_models = self._get_ollama_models()
-            for model_name in ollama_models:
-                try:
-                    logger.info(f"Attempting to load Ollama model: {model_name}")
-                    self.load_model(model_name, "ollama")
-                except Exception as e:
-                    logger.warning(f"Failed to load Ollama model {model_name}: {str(e)}", exc_info=True)
-        except Exception as e:
-            logger.error(f"Failed to load Ollama models: {str(e)}", exc_info=True)
-
-    def _get_ollama_models(self) -> List[str]:
+    def _load_ollama_models(self) -> None:
         try:
             response = requests.get(f"{settings.OLLAMA_BASE_URL}/api/tags")
             if response.status_code == 200:
                 models = response.json().get("models", [])
-                return [model["name"] for model in models]
+                ollama_model_names = [model["name"] for model in models]
+                for model_name in ollama_model_names:
+                    self.default_models[model_name] = "ollama"
+                    self.default_models[f"{model_name}:latest"] = "ollama"
+                logger.info(f"Ollama models loaded: {ollama_model_names}")
             else:
                 logger.error(f"Failed to get Ollama models. Status code: {response.status_code}")
-                return []
         except Exception as e:
             logger.error(f"Error fetching Ollama models: {str(e)}")
-            return []
 
-    def load_model(self, model_name: str, model_type: str) -> None:
+    def _load_model(self, model_name: str, model_type: str) -> None:
         if model_name in self.models:
             logger.info(f"Model {model_name} already loaded")
             return
@@ -74,31 +54,81 @@ class ModelManager:
             "huggingface": HuggingFaceModel,
             "openai": OpenAIModel,
             "anthropic": AnthropicModel,
-            "grok": GrokModel
+            "groq": GroqModel
         }
 
         if model_type not in model_classes:
             logger.error(f"Unsupported model type: {model_type}")
             raise ValueError(f"Unsupported model type: {model_type}")
 
-        logger.info(f"Creating instance of {model_type} model: {model_name}")
-        model = model_classes[model_type](model_name)
-        logger.info(f"Loading model: {model_name}")
-        model.load()
-        self.models[model_name] = model
-        logger.info(f"Model {model_name} of type {model_type} loaded successfully")
+        try:
+            logger.info(f"Creating instance of {model_type} model: {model_name}")
+            model = model_classes[model_type](model_name)
+            logger.info(f"Loading model: {model_name}")
+            model.load()
+            self.models[model_name] = model
+            logger.info(f"Model {model_name} of type {model_type} loaded successfully")
+        except Exception as e:
+            logger.error(f"Error loading model {model_name}: {str(e)}")
+            raise
 
-    def get_model(self, model_name: str) -> BaseModel:
+    def load_model(self, model_name: str, model_type: str) -> None:
+        self._load_model(model_name, model_type)
+
+    def get_model(self, model_name: str, model_type: Optional[str] = None) -> Optional[IClient]:
         if model_name not in self.models:
-            raise ValueError(f"Model {model_name} not loaded")
-        return self.models[model_name]
+            if model_type is None:
+                model_type = self.default_models.get(model_name)
+                if model_type is None:
+                    logger.error(f"Model type for {model_name} not provided and not found in default models")
+                    return None
+            try:
+                self.load_model(model_name, model_type)
+            except Exception as e:
+                logger.error(f"Failed to load model {model_name}: {str(e)}")
+                return None
+        return self.models.get(model_name)
 
     def list_loaded_models(self) -> List[Dict[str, Any]]:
         return [model.get_info() for model in self.models.values()]
 
-    def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None) -> str:
-        model = self.get_model(model_name)
-        return model.generate(prompt, max_tokens)
+    def _generate_response(self, model_name: str, input_data: Any, max_tokens: Optional[int], temperature: float, model_type: Optional[str], method: str, **kwargs) -> Optional[Any]:
+        try:
+            model = self.get_model(model_name, model_type)
+            if model is None:
+                logger.error(f"Model {model_name} not loaded")
+                return f"Model {model_name} not loaded"
+            
+            filtered_kwargs = self._filter_kwargs_for_model(model, kwargs)
+            
+            if (settings.DEBUGG):
+                for key, value in filtered_kwargs.items():
+                    print(f"{key}: {value}")
+
+            if method == "generate":
+                response = model.generate(input_data, max_tokens, temperature, **filtered_kwargs)
+            elif method == "chat":
+                response = model.generate_chat(input_data, max_tokens, temperature, **filtered_kwargs)
+            else:
+                logger.error(f"Unsupported method: {method}")
+                return f"Unsupported method: {method}"
+            
+            ToolFunctions.sendToFirebase(model_name, input_data, kwargs, filtered_kwargs, response["message"]['content'], logger)
+            
+            return response
+        except Exception as e:
+            raise e
+
+    def generate(self, model_name: str, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> Any:
+        return self._generate_response(model_name, prompt, max_tokens, temperature, model_type, method="generate", **kwargs)
+
+    def generate_chat(self, model_name: str, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, model_type: Optional[str] = None, **kwargs) -> Optional[object]:
+        messages_dict = [msg.dict() for msg in messages]
+        try:
+            resp = self._generate_response(model_name, messages_dict, max_tokens, temperature, model_type, method="chat", **kwargs)
+            return resp
+        except Exception as e:
+            raise e
 
 model_manager = ModelManager()
 ```

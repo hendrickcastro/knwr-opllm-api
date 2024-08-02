@@ -26,7 +26,7 @@ def get_directory_structure(dir_path, exclude_folders=[], exclude_files=[]):
     return result
 
 # Ruta del directorio a analizar
-directory_path = '../api'  # Puedes cambiar esto por cualquier directorio
+directory_path = '../'  # Puedes cambiar esto por cualquier directorio
 
 # Lista de carpetas a excluir
 exclude_folders = [
@@ -35,6 +35,9 @@ exclude_folders = [
     '__pycache__',
     '.pytest_cache',
     '_documentation',
+    '_DOC',
+    '_GUIDE',
+    '_REST',
     '_Guide',
     '.git',
     '_REST',
@@ -43,7 +46,9 @@ exclude_folders = [
     'origin',
     '.vscode',
     'tests',
+    'test',
     'dist',
+    'virtualenv',
     'test/subtest'  # Ejemplo de subcarpeta a excluir
 ]
 
@@ -55,7 +60,14 @@ exclude_files = [
     '__init__.py',
     '.env',
     '.gitignore',
-    'requirements.txt'
+    'requirements.txt',
+    '.DS_Store',
+    '0.create.sh',
+    '1.init.sh',
+    '2.tools.sh',
+    '3.up.sh',
+    'Dockerfile',
+    'requirements_mac.txt',
 ]
 
 # Obtener la estructura del directorio

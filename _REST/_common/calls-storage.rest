@@ -1,0 +1,82 @@
+@baseUrl = http://localhost:8000
+@model_name = gpt-4o-mini
+@model_name = llama3.1:latest
+# @model_name = claude-3-5-sonnet-20240620
+# @model_name = llama-3.1-70b-versatile
+# @model_name = mistralai/Mixtral
+
+
+### Generar embedding
+POST {{baseUrl}}/storage/embedding
+Content-Type: application/json
+
+{
+    "text": "Este es un ejemplo de texto para generar un embedding."
+}
+
+### Crear chunks
+POST {{baseUrl}}/storage/chunk
+Content-Type: application/json
+
+{
+    "content": "Este es un texto largo que se dividirá en chunks. Puede contener múltiples oraciones y párrafos para demostrar la funcionalidad de chunking.",
+    "content_type": "text"
+}
+
+### Comparar embeddings
+POST {{baseUrl}}/storage/compare_embeddings
+Content-Type: application/json
+
+{
+    "text1": "Inteligencia artificial",
+    "text2": "Machine learning"
+}
+
+### Almacenar embedding
+POST {{baseUrl}}/storage/store_embedding
+Content-Type: application/json
+
+{
+    "text": "Este es un texto de ejemplo para almacenar como embedding.",
+    "metadata": {
+        "source": "ejemplo",
+        "category": "test"
+    }
+}
+
+### Buscar embeddings similares
+POST {{baseUrl}}/storage/search_similar_embeddings
+Content-Type: application/json
+
+{
+    "text": "inteligencia artificial",
+    "top_k": 5
+}
+
+### Consulta RAG
+POST {{baseUrl}}/storage/rag
+Content-Type: application/json
+
+{
+    "query": "¿Cuáles son las aplicaciones de la inteligencia artificial en la medicina?",
+    "model_name": "{{model_name}}",
+    "top_k": 3
+}
+
+### Listar modelos cargados
+GET {{baseUrl}}/check/models
+
+### Cargar un modelo
+POST {{baseUrl}}/check/load_model
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "model_type": "ollama"
+}
+
+### Verificar conexión con Ollama
+GET {{baseUrl}}/check/check_ollama
+
+### Listar modelos de Ollama
+GET {{baseUrl}}/check/check_ollama_models

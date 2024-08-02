@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, List
 from ...contract.IClient import IClient
 from ...core.config import settings
 from ...core.utils import setup_logger
+from ...core.common.functions import ToolFunctions
 
 logger = setup_logger(__name__)
 
@@ -16,8 +17,10 @@ class OpenAIModel(IClient):
         pass
 
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Optional[object]:
-        for key, value in kwargs.items():
-            print(f"{key}: {value}")
+        if (settings.DEBUGG):
+            for key, value in kwargs.items():
+                print(f"{key}: {value}")
+                
         try:
             response = self.client.chat.completions.create(
                 model=self.model_name,
@@ -38,8 +41,7 @@ class OpenAIModel(IClient):
             }
             
             return response_dict
-        except Exception as e:
-            logger.error(f"Error generating chat with OpenAI model {self.model_name}: {str(e)}")
+        except Exception:
             raise
         
     def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7) -> str:
@@ -54,6 +56,14 @@ class OpenAIModel(IClient):
         except Exception as e:
             logger.error(f"Error generating text with OpenAI model {self.model_name}: {str(e)}")
             raise
+        
+    def _filter_kwargs(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        accepted_params = [
+            'model', 'temperature', 'top_p', 'n', 'stream', 'stop', 'max_tokens',
+            'presence_penalty', 'frequency_penalty', 'logit_bias', 'user',
+            'response_format', 'seed', 'tools', 'tool_choice'
+        ]
+        return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:
         return {"name": self.model_name, "type": "openai"}

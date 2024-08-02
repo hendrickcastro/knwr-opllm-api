@@ -1,53 +1,100 @@
 import os
 from dotenv import load_dotenv
 from typing import Dict, Any
+from src.core.storage.firebase import firebase_connection
 
 load_dotenv()
 
 class Settings:
-    MONGODB_URI: str = os.getenv("MONGODB_URI")
-    MONGODB_USER: str = os.getenv("MONGODB_USER")
-    MONGODB_PASS: str = os.getenv("MONGODB_PASS")
-    MONGODB_DB: str = os.getenv("MONGODB_DB", "cashabotorllm")
-    
-    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    
-    # Configuración para futuros modelos
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
-    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY")
-    HUGGINGFACE_API_KEY: str = os.getenv("HUGGINGFACE_API_KEY")
-    GROK_API_KEY: str = os.getenv("GROK_API_KEY")
+    def __init__(self):
+        self.firebase = firebase_connection
 
-    MODEL_CONFIGS: Dict[str, Dict[str, Any]] = {
-        "ollama": {
-            "base_url": OLLAMA_BASE_URL,
-        },
-        "openai": {
-            "base_url": "https://api.openai.com/v1",
-            "api_key": OPENAI_API_KEY,
-        },
-        "anthropic": {
-            "base_url": "https://api.anthropic.com",
-            "api_k,ey": ANTHROPIC_API_KEY,
-        },
-        "huggingface": {
-            "base_url": "https://api.huggingface.co",
-            "api_key": HUGGINGFACE_API_KEY,
-        },
-        "grok": {
-            "base_url": "https://api.grok.com",
-            "api_key": GROK_API_KEY
-        },
-    }
+    def _get_config(self, key: str, default: Any = None) -> Any:
+        value = self.firebase.get(key)
+        if value is None:
+            value = os.getenv(key, default)
+        return value
+
+    @property
+    def MONGODB_URI(self) -> str:
+        return self._get_config("MONGODB_URI")
+
+    @property
+    def MONGODB_USER(self) -> str:
+        return self._get_config("MONGODB_USER")
+
+    @property
+    def MONGODB_PASS(self) -> str:
+        return self._get_config("MONGODB_PASS")
+
+    @property
+    def MONGODB_DB(self) -> str:
+        return self._get_config("MONGODB_DB", "cashabotorllm")
+
+    @property
+    def OLLAMA_BASE_URL(self) -> str:
+        return self._get_config("OLLAMA_BASE_URL", "http://localhost:11434")
+
+    @property
+    def OPENAI_API_KEY(self) -> str:
+        return self._get_config("OPENAI_API_KEY")
+
+    @property
+    def ANTHROPIC_API_KEY(self) -> str:
+        return self._get_config("ANTHROPIC_API_KEY")
+
+    @property
+    def HUGGINGFACE_API_KEY(self) -> str:
+        return self._get_config("HUGGINGFACE_API_KEY")
+
+    @property
+    def GROQ_API_KEY(self) -> str:
+        return self._get_config("GROQ_API_KEY")
     
-    DEFAULT_MODELS: Dict[str, str] = {
-        "gpt-4o-mini": "openai",
-        "gpt-4o-coder": "grok",
-        "microsoft/codebert-base": "huggingface",
-        "claude-3-5-sonnet-20240620": "anthropic",
-        "llama3-70b-8192": "grok",  # Asegúrate de que esté aquí
-        "llama3-70b-8192:latest": "grok",  # Asegúrate de que esté aquí también
-    }
+    @property
+    def DEBUGG(self) -> str:
+        return self._get_config("ENV") == "development"
+    
+    @property
+    def ROOTCOLECCTION(self) -> str:
+        return self._get_config("ROOTCOLECCTION")
+
+    @property
+    def MODEL_CONFIGS(self) -> Dict[str, Dict[str, Any]]:
+        return {
+            "ollama": {
+                "base_url": self.OLLAMA_BASE_URL,
+            },
+            "openai": {
+                "base_url": "https://api.openai.com/v1",
+                "api_key": self.OPENAI_API_KEY,
+            },
+            "anthropic": {
+                "base_url": "https://api.anthropic.com",
+                "api_key": self.ANTHROPIC_API_KEY,
+            },
+            "huggingface": {
+                "base_url": "https://api.huggingface.co",
+                "api_key": self.HUGGINGFACE_API_KEY,
+            },
+            "groq": {
+                "base_url": "https://api.groq.com",
+                "api_key": self.GROQ_API_KEY
+            },
+        }
+
+    @property
+    def DEFAULT_MODELS(self) -> Dict[str, str]:
+        default = {
+            "gpt-4o-mini": "openai",
+            "gpt-4o-coder": "grok",
+            "mistralai/Mixtral-8x7B-Instruct-v0.1": "huggingface",
+            "claude-3-5-sonnet-20240620": "anthropic",
+            "llama-3.1-70b-versatile": "groq",
+            "llama-3.1-405b-reasoning": "groq",
+            "llama3-groq-70b-8192-tool-use-preview": "groq"
+        }
+        return self._get_config("DEFAULT_MODELS", default)
 
     @property
     def DATABASE_URL(self):

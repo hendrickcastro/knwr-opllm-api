@@ -1,29 +1,22 @@
 
 ## Archivo: main.py
-### Ruta Relativa: ../api\main.py
+### Ruta Relativa: ../main.py
 
 ```python
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from api.routes import router
+import debugpy
 import uvicorn
-from core.utils import setup_logger
+from app_factory import create_app
 
-logger = setup_logger(__name__)
-
-app = FastAPI(debug=True)  # Enable debug mode
-
-# Include the router without a prefix
-app.include_router(router)
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"message": f"An unexpected error occurred: {str(exc)}"},
-    )
+app = create_app()
 
 if __name__ == "__main__":
+    # Habilitar debugpy (Python Tools for Visual Studio Debugging)
+    debugpy.listen(("0.0.0.0", 5679))
+    print("Esperando al depurador para adjuntar...")
+    # Puedes descomentar la siguiente línea si deseas que la ejecución se detenga hasta que el depurador se conecte
+    # debugpy.wait_for_client()
+
+    # Pasar la aplicación como cadena de importación para soportar recarga automática
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
 ```

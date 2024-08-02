@@ -1,0 +1,6 @@
+Title:
+Uso del contexto
+
+Content:
+Usar primero el contexto de los archivos cargados luego actualizar el contexto con lo ultimo respondido para actualizar segun se vaya haciendo modificaciones 
+sobre alguna parte del codigo en concreto 

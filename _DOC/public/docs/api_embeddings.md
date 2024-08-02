@@ -1,12 +1,12 @@
 
 ## Archivo: embeddings.py
-### Ruta Relativa: ../api\models\embeddings.py
+### Ruta Relativa: ../src\models\embeddings.py
 
 ```python
 from sentence_transformers import SentenceTransformer
 import numpy as np
 from typing import List
-from core.utils import setup_logger
+from ..core.utils import setup_logger
 
 logger = setup_logger(__name__)
 

@@ -1,6 +1,6 @@
 
 ## Archivo: utils.py
-### Ruta Relativa: ../api\core\utils.py
+### Ruta Relativa: ../src\core\utils.py
 
 ```python
 import logging
