@@ -135,6 +135,46 @@ class SessionStorage:
             logger.info(f"Synced sessions for user {user_id} from Firebase to local database")
         except Exception as e:
             logger.error(f"Error syncing sessions for user {user_id} from Firebase: {str(e)}")
+            
+    def sync_to_firebase(self, user_id: str):
+        try:
+            logger.info(f"Starting synchronization from local database to Firebase for user {user_id}")
+
+            # Conectar a la base de datos local
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            # Obtener todas las sesiones locales del usuario
+            cursor.execute('SELECT session_id, guid, data, timestamp FROM sessions WHERE user_id = ?', (user_id,))
+            local_sessions = cursor.fetchall()
+
+            # Conectar a Firebase y obtener sesiones del usuario
+            user_doc_ref = firebase_connection.db.collection(settings.ROOTCOLECCTION).document(user_id)
+            firebase_sessions = {}
+            for session_collection in user_doc_ref.collections():
+                for session in session_collection.stream():
+                    data = session.to_dict()
+                    guid = data.get('guid')
+                    if guid:
+                        firebase_sessions[guid] = data
+
+            # Sincronizar sesiones locales con Firebase
+            for session_id, guid, data, timestamp in local_sessions:
+                if guid not in firebase_sessions:
+                    # Si la sesión no está en Firebase, subirla
+                    try:
+                        self.store_in_firebase(user_id, session_id, json.loads(data))
+                        logger.info(f"Synced local session {session_id} with GUID {guid} to Firebase")
+                    except Exception as e:
+                        logger.error(f"Error syncing session {session_id} with GUID {guid} to Firebase: {str(e)}")
+                else:
+                    logger.info(f"Session {session_id} with GUID {guid} already exists in Firebase")
+
+            conn.close()
+            logger.info(f"Completed synchronization from local database to Firebase for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error during local to Firebase sync for user {user_id}: {str(e)}")
+
 
 
 session_storage = SessionStorage(settings.SQLITE_DB_PATH)

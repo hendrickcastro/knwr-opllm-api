@@ -15,6 +15,14 @@ Content-Type: application/json
 }
 
 ### Generar embedding
+POST {{baseUrl}}/storage/sync_to_firebase/knowcker
+Content-Type: application/json
+
+{
+    
+}
+
+### Generar embedding
 POST {{baseUrl}}/storage/embedding
 Content-Type: application/json
 

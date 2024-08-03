@@ -22,6 +22,14 @@ async def sync_from_firebase(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error syncing from Firebase: {str(e)}")
 
+@router_storage.post("/sync_to_firebase/{user_id}")
+async def sync_to_firebase(user_id: str):
+    try:
+        session_storage.sync_to_firebase(user_id)
+        return {"message": "Sync to Firebase completed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error syncing to Firebase: {str(e)}")
+
 @router_storage.post("/store_embedding", response_model=StoreEmbeddingResponse)
 async def store_embedding(request: StoreEmbeddingRequest):
     try:
