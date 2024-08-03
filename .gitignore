@@ -163,3 +163,4 @@ cython_debug/
 virtualenv/
 InternVL226B/
 configdb.json
+/_DOC/public
