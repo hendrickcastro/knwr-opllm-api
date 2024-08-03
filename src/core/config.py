@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from typing import Dict, Any
-from src.core.storage.firebase import firebase_connection
+from ..core.storage.firebase import firebase_connection
 
 load_dotenv()
 
@@ -60,30 +60,6 @@ class Settings:
         return self._get_config("ROOTCOLECCTION")
 
     @property
-    def MODEL_CONFIGS(self) -> Dict[str, Dict[str, Any]]:
-        return {
-            "ollama": {
-                "base_url": self.OLLAMA_BASE_URL,
-            },
-            "openai": {
-                "base_url": "https://api.openai.com/v1",
-                "api_key": self.OPENAI_API_KEY,
-            },
-            "anthropic": {
-                "base_url": "https://api.anthropic.com",
-                "api_key": self.ANTHROPIC_API_KEY,
-            },
-            "huggingface": {
-                "base_url": "https://api.huggingface.co",
-                "api_key": self.HUGGINGFACE_API_KEY,
-            },
-            "groq": {
-                "base_url": "https://api.groq.com",
-                "api_key": self.GROQ_API_KEY
-            },
-        }
-
-    @property
     def DEFAULT_MODELS(self) -> Dict[str, str]:
         default = {
             "gpt-4o-mini": "openai",
@@ -99,5 +75,9 @@ class Settings:
     @property
     def DATABASE_URL(self):
         return f"mongodb://{self.MONGODB_USER}:{self.MONGODB_PASS}@{self.MONGODB_URI.split('://')[1]}"
+
+    @property
+    def SQLITE_DB_PATH(self) -> str:
+        return self._get_config("SQLITE_DB_PATH", "./db/local_sessions.db")
 
 settings = Settings()

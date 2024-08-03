@@ -17,7 +17,7 @@ Content-Type: application/json
         {"role": "assistant", "content": "Hola! Estoy aquí para ayudarte con cualquier pregunta que tengas."},
         {"role": "user", "content": "¿Puedes darme una recomendación de libros sobre inteligencia artificial?"}
     ],
-    "max_tokens": 500,
+    "max_tokens": 150,
     "temperature": 0.7,
     "top_p": 0.9,
     "n": 1,
@@ -26,7 +26,7 @@ Content-Type: application/json
     "user": "knowcker",
     "session": {
         "userId": "knowcker",
-        "sessionId": "session-123"
+        "sessionId": "session-002"
     }
 }
 

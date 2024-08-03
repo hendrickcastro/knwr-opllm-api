@@ -16,9 +16,10 @@ class ModelManager:
     def __init__(self):
         self.models: Dict[str, IClient] = {}
         self.default_models = settings.DEFAULT_MODELS
+        self.tool_functions = ToolFunctions()
         self._load_ollama_models()
         logger.info("Initializing ModelManager")
-        ToolFunctions.sync_databases(logger)
+        self.tool_functions.sync_databases(logger)
         
     def _filter_kwargs_for_model(self, model: IClient, kwargs: Dict[str, Any]) -> Dict[str, Any]:
         if hasattr(model, '_filter_kwargs'):
@@ -109,7 +110,7 @@ class ModelManager:
                 logger.error(f"Unsupported method: {method}")
                 return f"Unsupported method: {method}"
             
-            ToolFunctions.saveSessionData(model_name, input_data, kwargs, filtered_kwargs, response["message"]['content'], logger)
+            self.tool_functions.saveSessionData(model_name, input_data, kwargs, filtered_kwargs, response["message"]['content'], logger)
             
             return response
         except Exception as e:

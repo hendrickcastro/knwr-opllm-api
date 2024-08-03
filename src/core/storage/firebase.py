@@ -113,6 +113,37 @@ class FirebaseConnection:
         except Exception as e:
             print(f"Error adding document to Firebase: {str(e)}")
             return None  # Return None instead of raising an exception
+        
+    def add_document_with_id(self, collection_path: str, doc_id: str, data: Dict[str, Any]) -> str:
+        try:
+            self._ensure_connection()
+            # Dividimos la ruta en sus componentes
+            path_parts = collection_path.split('/')
+            
+            # Comenzamos con la referencia a la base de datos
+            current_ref = self.db
+            
+            # Iteramos a través de las partes de la ruta
+            for i, part in enumerate(path_parts):
+                if i % 2 == 0:
+                    # Es una colección
+                    current_ref = current_ref.collection(part)
+                else:
+                    # Es un documento
+                    current_ref = current_ref.document(part)
+            
+            # Añadimos los datos al último nivel usando el doc_id
+            if isinstance(current_ref, firestore.CollectionReference):
+                # Si terminamos en una colección, establecemos el documento con el doc_id
+                current_ref.document(doc_id).set(data)
+                return doc_id
+            else:
+                # Si terminamos en un documento, establecemos los datos (esto debería ser raro)
+                current_ref.set(data)
+                return current_ref.id
+        except Exception as e:
+            print(f"Error adding document to Firebase: {str(e)}")
+            return None  # Return None instead of raising an exception
 
     def get_document(self, collection: str, doc_id: str) -> Dict[str, Any]:
         try:
