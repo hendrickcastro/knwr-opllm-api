@@ -174,7 +174,53 @@ class SessionStorage:
             logger.info(f"Completed synchronization from local database to Firebase for user {user_id}")
         except Exception as e:
             logger.error(f"Error during local to Firebase sync for user {user_id}: {str(e)}")
+            
 
+    def delete_session_data(self, user_id: str, session_id: str, guid: str):
+        try:
+            # Eliminar de la base de datos local
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM sessions WHERE user_id = ? AND session_id = ? AND guid = ?', (user_id, session_id, guid))
+            conn.commit()
+            conn.close()
+            logger.info(f"Deleted session {session_id} with GUID {guid} from local database")
+            
+            # Eliminar de Firebase
+            firebase_connection.delete_document(
+                f'{settings.ROOTCOLECCTION}/{user_id}/{session_id}',
+                guid
+            )
+            logger.info(f"Deleted session {session_id} with GUID {guid} from Firebase")
+        except Exception as e:
+            logger.error(f"Error deleting session {session_id} with GUID {guid}: {str(e)}")
+            
+            
+    def update_session_data(self, user_id: str, session_id: str, guid: str, new_data: Dict[str, Any]):
+        try:
+            # Actualizar en la base de datos local
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            new_data_json = json.dumps(new_data)
+            timestamp = time.time()
+            cursor.execute('''
+                UPDATE sessions
+                SET data = ?, timestamp = ?, synced = 0
+                WHERE user_id = ? AND session_id = ? AND guid = ?
+            ''', (new_data_json, timestamp, user_id, session_id, guid))
+            conn.commit()
+            conn.close()
+            logger.info(f"Updated session {session_id} with GUID {guid} in local database")
 
+            # Actualizar en Firebase
+            new_data["id"] = guid
+            firebase_connection.update_document(
+                f'{settings.ROOTCOLECCTION}/{user_id}/{session_id}',
+                guid,
+                new_data
+            )
+            logger.info(f"Updated session {session_id} with GUID {guid} in Firebase")
+        except Exception as e:
+            logger.error(f"Error updating session {session_id} with GUID {guid}: {str(e)}")
 
 session_storage = SessionStorage(settings.SQLITE_DB_PATH)

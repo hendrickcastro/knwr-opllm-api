@@ -21,3 +21,9 @@ Content-Type: application/json
 {
     
 }
+
+### Generar embedding
+DELETE {{baseUrl}}/sessions/knowcker/userid/session-002/sessionid/05c7997b-0346-4301-8e77-9dca396c7d96/guid
+Content-Type: application/json
+
+{}
