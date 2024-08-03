@@ -101,22 +101,35 @@ class SessionStorage:
             logger.info(f"Fetching sessions for user {user_id} from Firebase")
             user_doc_ref = firebase_connection.db.collection(settings.ROOTCOLECCTION).document(user_id)
             session_collections = user_doc_ref.collections()
-            
+
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
+
             for session_collection in session_collections:
                 for session in session_collection.stream():
-                    session_id = session.id
                     data = session.to_dict()
+                    session_id = data.get("sessionId")
+                    guid = data.get('guid')
                     timestamp = data.get('timestamp', time.time())
-                    
-                    # Insertar en la base de datos local si no existe
-                    cursor.execute('''
-                        INSERT OR IGNORE INTO sessions (user_id, session_id, data, timestamp, synced) 
-                        VALUES (?, ?, ?, ?, 1)
-                    ''', (user_id, session_id, json.dumps(data), timestamp))
-            
+
+                    # Verificar si el GUID ya existe en la base de datos local
+                    cursor.execute('SELECT COUNT(*) FROM sessions WHERE guid = ?', (guid,))
+                    count = cursor.fetchone()[0]
+
+                    if count == 0:
+                        # Insertar en la base de datos local si no existe
+                        cursor.execute('''
+                            INSERT OR IGNORE INTO sessions (user_id, session_id, guid, data, timestamp, synced) 
+                            VALUES (?, ?, ?, ?, ?, 1)
+                        ''', (user_id, session_id, guid, json.dumps(data), timestamp))
+                    else:
+                        # Actualizar la entrada existente si los GUID coinciden
+                        cursor.execute('''
+                            UPDATE sessions
+                            SET data = ?, timestamp = ?, synced = 1
+                            WHERE guid = ?
+                        ''', (json.dumps(data), timestamp, guid))
+
             conn.commit()
             conn.close()
             logger.info(f"Synced sessions for user {user_id} from Firebase to local database")
