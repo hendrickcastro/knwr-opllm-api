@@ -1,8 +1,3 @@
-
-## Archivo: ollama.py
-### Ruta Relativa: ../src\tools\langchain\ollama.py
-
-```python
 from langchain_community.llms import Ollama
 ollama = Ollama(
     base_url='http://localhost:11434',
@@ -10,4 +5,3 @@ ollama = Ollama(
     temperature=0,
 )
 print(ollama.invoke("why is the sky blue"))
-```

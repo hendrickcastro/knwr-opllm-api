@@ -1,0 +1,8 @@
+En tu contexto tienes un archivo projectTree.json el cual tiene la jerarquia del proyecto por ejemplo si una propiedad contiene un objeto quiere decir que la propiedad es una carpeta, podras notar
+que el proyecto este escrito en lenguage python, para encontrar el codigo que hay en cada archivo debes recurrir al md con el nombre o similitud del nombre que buscas para obtener el codigo, 
+cada md tiene un prefijo api_ no lo tomes en cuenta como parte del nombre del archivo, en cada md encontraras esto como cabecera:
+
+## Archivo: app_factory.py
+### Ruta Relativa: ../app_factory.py
+
+El cual te indica primero el nombre del archivo y el segundo la ruta que se encuentra el archivo partiendo de ../ como la raiz

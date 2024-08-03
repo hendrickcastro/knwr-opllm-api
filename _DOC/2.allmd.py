@@ -40,7 +40,7 @@ with open('public/projectTree.json', 'r', encoding='utf-8') as f:
     directory_structure = json.load(f)
 
 # Generar la documentación
-documentation = generate_documentation(directory_structure, '../src')
+documentation = generate_documentation(directory_structure, '../')
 
 # Guardar la documentación en un archivo .md
 os.makedirs('public/docs', exist_ok=True)

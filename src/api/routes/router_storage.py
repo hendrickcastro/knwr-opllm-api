@@ -4,12 +4,33 @@ from ...core.storage.database import db
 from ...models.model_manager import model_manager
 from ...core.chunks.chunk_handler import chunk_handler
 from ...entity.Class import CompareEmbeddingsRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
+from src.core.storage.vector_database import VectorDatabase
 import logging
 import traceback
+
+vector_db = VectorDatabase('./db/localv.db')
 
 logger = logging.getLogger(__name__)
 
 router_storage = APIRouter()
+
+@router_storage.post("/store_embedding", response_model=StoreEmbeddingResponse)
+async def store_embedding(request: StoreEmbeddingRequest):
+    try:
+        embedding = embedding_generator.generate_embedding(request.text)
+        embedding_id = vector_db.add_embedding(embedding, request.metadata)
+        return StoreEmbeddingResponse(embedding_id=embedding_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router_storage.post("/search_similar_embeddings", response_model=SearchSimilarEmbeddingsResponse)
+async def search_similar_embeddings(request: SearchSimilarEmbeddingsRequest):
+    try:
+        query_embedding = embedding_generator.generate_embedding(request.text)
+        similar_embeddings = vector_db.search_similar(query_embedding, request.top_k)
+        return SearchSimilarEmbeddingsResponse(similar_embeddings=similar_embeddings)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router_storage.post("/embedding", response_model=EmbeddingResponse)
 async def generate_embedding(request: EmbeddingRequest):
@@ -37,47 +58,6 @@ async def compare_embeddings(request: CompareEmbeddingsRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router_storage.post("/store_embedding", response_model=StoreEmbeddingResponse)
-async def store_embedding(request: StoreEmbeddingRequest):
-    try:
-        embedding = embedding_generator.generate_embedding(request.text)
-        embedding_id = db.store_embedding(embedding, request.metadata)
-        return StoreEmbeddingResponse(embedding_id=embedding_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router_storage.post("/search_similar_embeddings", response_model=SearchSimilarEmbeddingsResponse)
-async def search_similar_embeddings(request: SearchSimilarEmbeddingsRequest):
-    try:
-        logger.info(f"Received request to search similar embeddings for text: {request.text[:50]}...")
-        query_embedding = embedding_generator.generate_embedding(request.text)
-        logger.info(f"Generated embedding of length {len(query_embedding)}")
-        similar_embeddings = db.search_similar_embeddings(query_embedding, request.top_k)
-        logger.info(f"Found {len(similar_embeddings)} similar embeddings")
-        
-        formatted_embeddings = []
-        for embedding in similar_embeddings:
-            try:
-                formatted_embedding = SimilarEmbedding(
-                    id=str(embedding['_id']),
-                    metadata=embedding['metadata'],
-                    cosine_similarity=float(embedding['cosine_similarity'])
-                )
-                formatted_embeddings.append(formatted_embedding)
-                logger.info(f"Formatted embedding: {formatted_embedding}")
-            except KeyError as ke:
-                logger.error(f"KeyError while formatting embedding: {ke}")
-                logger.error(f"Problematic embedding: {embedding}")
-            except Exception as e:
-                logger.error(f"Error formatting embedding: {str(e)}")
-                logger.error(f"Problematic embedding: {embedding}")
-        
-        return SearchSimilarEmbeddingsResponse(similar_embeddings=formatted_embeddings)
-    except Exception as e:
-        logger.error(f"Error in search_similar_embeddings endpoint: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-    
 @router_storage.post("/rag", response_model=RAGResponse)
 async def rag_query(request: RAGRequest):
     try:

@@ -53,7 +53,7 @@ class Settings:
     
     @property
     def DEBUGG(self) -> str:
-        return self._get_config("DEBUGG") == "development"
+        return self._get_config("ENV") == "development"
     
     @property
     def ROOTCOLECCTION(self) -> str:

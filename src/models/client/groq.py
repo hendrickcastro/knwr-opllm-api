@@ -17,17 +17,13 @@ class GroqModel(IClient):
         pass
 
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = 500, temperature: float = 0.7, **kwargs) -> Optional[object]:
-        if (settings.DEBUGG):
-            for key, value in kwargs.items():
-                print(f"{key}: {value}")
         try:
-            filtered_kwargs = self._filter_kwargs(**kwargs)
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                **filtered_kwargs
+                **kwargs
             )
             
             response_dict = {
@@ -38,10 +34,6 @@ class GroqModel(IClient):
                 "prompt_eval_count": response.usage.prompt_tokens,
                 "eval_count": response.usage.completion_tokens,
             }
-            
-            # Guardar la interacción en Firebase
-            # if kwargs has session object with userId and sessionId properties then save the interaction
-            ToolFunctions.sendToFirebase(self, messages, kwargs, filtered_kwargs, response_dict["message"]['content'], logger)
             
             return response_dict
         except Exception as e:

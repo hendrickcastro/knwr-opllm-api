@@ -1,6 +1,5 @@
 from typing import Dict, Any
 from ...models.model_manager import model_manager
-from ...models.prompts.prompt_handler import prompt_handler
 from ...core.utils import setup_logger
 
 logger = setup_logger(__name__)
@@ -14,9 +13,8 @@ class AutoAgent:
     def process_input(self, user_input: str) -> str:
         try:
             prompt = f"Task: {self.task_description}\nContext: {self.context}\nUser Input: {user_input}\nAgent:"
-            response = prompt_handler.process_prompt(self.model_name, "completion", input=prompt)
-            self._update_context(user_input, response)
-            return response
+            self._update_context(user_input, prompt)
+            return prompt
         except Exception as e:
             logger.error(f"Error processing input for AutoAgent: {str(e)}")
             raise

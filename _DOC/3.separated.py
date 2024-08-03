@@ -33,6 +33,6 @@ def generate_documentation(structure, base_path=''):
     process_structure(structure, base_path)
 
 # Generar la documentación
-generate_documentation(directory_structure, '../src')
+generate_documentation(directory_structure, '../')
 
 print('La documentación del código se ha guardado en la carpeta docs')

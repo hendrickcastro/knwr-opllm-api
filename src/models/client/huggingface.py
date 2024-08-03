@@ -32,15 +32,13 @@ class HuggingFaceModel(IClient):
         try:
             # Concatenate messages into a single string
             prompt = " ".join([f"{msg['role']}: {msg['content']}" for msg in messages])
-            
             inputs = self.tokenizer(prompt, return_tensors="pt")
             
-            filter_kwargs = self._filter_kwargs(kwargs)
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_tokens,
                 temperature=temperature,
-                **filter_kwargs
+                **kwargs
             )
             
             response_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
@@ -53,21 +51,6 @@ class HuggingFaceModel(IClient):
                 "prompt_eval_count": len(inputs.input_ids[0]),
                 "eval_count": len(outputs[0]) - len(inputs.input_ids[0]),
             }
-            
-            # Guardar la interacción en Firebase
-            # if kwargs has session object with userId and sessionId properties then save the interaction
-            if "session" in kwargs and kwargs["session"] is not None and "userId" in kwargs["session"] and "sessionId" in kwargs["session"]:
-                session = kwargs["session"]
-                ## get last item from message extract the content
-                llm_data = {
-                    "model": self.model_name,
-                    "request": messages[-1]["content"],
-                    "messages": messages,
-                    "response": response_dict["message"]["content"],
-                    "timestamp": time.time()
-                }
-                doc_id = firebase_connection.add_document(f'{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}', llm_data)
-                logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
             
             return response_dict
         except Exception as e:

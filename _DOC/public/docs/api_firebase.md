@@ -1,3 +1,8 @@
+
+## Archivo: firebase.py
+### Ruta Relativa: ../src\core\storage\firebase.py
+
+```python
 import os
 import json
 from typing import Any, Dict
@@ -145,3 +150,4 @@ class FirebaseConnection:
             return None  # Return None instead of raising an exception
 
 firebase_connection = FirebaseConnection()
+```

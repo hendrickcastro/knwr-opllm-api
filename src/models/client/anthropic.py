@@ -25,7 +25,7 @@ class AnthropicModel(IClient):
                 max_tokens=max_tokens or 1024,
                 temperature=temperature,
                 messages=[{"role": "user", "content": prompt}],
-                **filtered_kwargs
+                **kwargs
             )
             return self._format_response(response)
         except Exception as e:
@@ -45,20 +45,15 @@ class AnthropicModel(IClient):
             
             system_message = system_message.strip()
             
-            filtered_kwargs = self._filter_kwargs(**kwargs)
             response = self.client.messages.create(
                 model=self.model_name,
                 max_tokens=max_tokens or 1024,
                 temperature=temperature,
                 system=system_message if system_message else None,
                 messages=filtered_messages,
-                **filtered_kwargs
+                **kwargs
             )
             resp = self._format_response(response)
-            
-            # Guardar la interacción en Firebase
-            # if kwargs has session object with userId and sessionId properties then save the interaction
-            ToolFunctions.sendToFirebase(self, messages, kwargs, filtered_kwargs, resp['message'], logger)
                 
             return resp
         except Exception as e:
@@ -74,7 +69,7 @@ class AnthropicModel(IClient):
             content = str(content)
 
         return {
-            "message": content,
+            "message": { "role": "user", "content": content },
             "tool_calls": [],
             "done_reason": response.stop_reason,
             "done": True,
