@@ -85,14 +85,14 @@ class SessionStorage:
         try:
             doc_id = self.store_in_firebase(user_id, session_id, data)
             logger.info(f"Stored in Firebase with ID: {doc_id}")
-            self.mark_as_synced(user_id, session_id)
+            self.mark_as_synced(user_id, session_id, doc_id)
         except Exception as e:
             logger.error(f"Error storing in Firebase: {str(e)}. Data stored locally.")
 
-    def mark_as_synced(self, user_id: str, session_id: str):
+    def mark_as_synced(self, user_id: str, session_id: str, doc_id: str):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute('UPDATE sessions SET synced = 1 WHERE user_id = ? AND session_id = ?', (user_id, session_id))
+        cursor.execute('UPDATE sessions SET synced = 1 WHERE user_id = ? AND session_id = ? AND guid = ?', (user_id, session_id, doc_id))
         conn.commit()
         conn.close()
     

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from src.api.routes import router, router_storage, router_check
+from src.api.routes import router, router_storage, router_sessions, router_check
 from src.core.utils import setup_logger
 
 logger = setup_logger(__name__)
@@ -12,6 +12,7 @@ def create_app() -> FastAPI:
     app.include_router(router)
 
     # Include the new routers with their respective prefixes
+    app.include_router(router_sessions, prefix="/sessions", tags=["sessions"])
     app.include_router(router_storage, prefix="/storage", tags=["storage"])
     app.include_router(router_check, prefix="/check", tags=["check"])
 

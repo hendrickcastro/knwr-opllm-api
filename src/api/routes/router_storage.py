@@ -5,7 +5,6 @@ from ...models.model_manager import model_manager
 from ...core.chunks.chunk_handler import chunk_handler
 from ...entity.Class import CompareEmbeddingsRequest, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
 from ...core.storage.vector_database import VectorDatabase
-from ...core.storage.session_storage import session_storage
 import logging
 
 vector_db = VectorDatabase('./db/localv.db')
@@ -13,22 +12,6 @@ vector_db = VectorDatabase('./db/localv.db')
 logger = logging.getLogger(__name__)
 
 router_storage = APIRouter()
-
-@router_storage.post("/sync_from_firebase/{user_id}")
-async def sync_from_firebase(user_id: str):
-    try:
-        session_storage.sync_from_firebase(user_id)
-        return {"message": "Sync from Firebase completed successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error syncing from Firebase: {str(e)}")
-
-@router_storage.post("/sync_to_firebase/{user_id}")
-async def sync_to_firebase(user_id: str):
-    try:
-        session_storage.sync_to_firebase(user_id)
-        return {"message": "Sync to Firebase completed successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error syncing to Firebase: {str(e)}")
 
 @router_storage.post("/store_embedding", response_model=StoreEmbeddingResponse)
 async def store_embedding(request: StoreEmbeddingRequest):
