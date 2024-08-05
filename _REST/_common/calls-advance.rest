@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:8000
-@model_name = gpt-4o-mini
+# @model_name = gpt-4o-mini
 # @model_name = llama3.1:latest
 # @model_name = gemma2:9b
 # @model_name = gemma2:2b

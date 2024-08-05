@@ -1,10 +1,20 @@
 @baseUrl = http://localhost:8000
 @model_name = gpt-4o-mini
-# @model_name = llama3.1:latest
+@model_name = llama3.1:latest
 # @model_name = claude-3-5-sonnet-20240620
 # @model_name = llama-3.1-70b-versatile
 # @model_name = mistralai/Mixtral
 
+
+### Realizar una consulta RAG
+POST {{baseUrl}}/storage/rag
+Content-Type: application/json
+
+{
+    "query": "¿Cuáles son los principales beneficios de la inteligencia artificial en la atención médica?",
+    "model_name": "{{model_name}}",
+    "top_k": 3
+}
 
 ### Generar embedding
 POST {{baseUrl}}/storage/embedding
@@ -37,10 +47,10 @@ POST {{baseUrl}}/storage/store_embedding
 Content-Type: application/json
 
 {
-    "text": "Este es un texto de ejemplo para almacenar como embedding.",
+    "text": "La inteligencia artificial en la atención médica ofrece varios beneficios, como la mejora en la precisión del diagnóstico",
     "metadata": {
-        "source": "ejemplo",
-        "category": "test"
+        "source": "La inteligencia artificial",
+        "category": "artificial"
     }
 }
 

@@ -30,20 +30,26 @@ class VectorDatabase:
         return id
 
     def search_similar(self, query_embedding: List[float], top_k: int = 5) -> List[Dict[str, Any]]:
-        results = self.collection.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k,
-            include=["metadatas", "distances"]
-        )
-        
-        return [
-            {
-                'id': id,
-                'metadata': metadata,
-                'cosine_similarity': 1 - distance  # ChromaDB usa distancia, la convertimos a similitud
-            }
-            for id, metadata, distance in zip(results['ids'][0], results['metadatas'][0], results['distances'][0])
-        ]
+        try:
+            results = self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=min(top_k, self.collection.count()),  # Asegurarse de no pedir más resultados de los que hay
+                include=["metadatas", "distances", "documents"]
+            )
+            
+            similar_embeddings = []
+            for i in range(len(results['ids'][0])):
+                similar_embeddings.append({
+                    'id': results['ids'][0][i],
+                    'metadata': results['metadatas'][0][i],
+                    'content': results['documents'][0][i],
+                    'cosine_similarity': 1 - results['distances'][0][i]  # Convertir distancia a similitud
+                })
+            
+            return similar_embeddings
+        except Exception as e:
+            logger.error(f"Error searching similar embeddings: {str(e)}", exc_info=True)
+            return []
 
     def sync_with_cloud(self):
         if not self.check_connection():

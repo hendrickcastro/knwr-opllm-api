@@ -211,4 +211,9 @@ class RAGRequest(PBaseModel):
 
 class RAGResponse(PBaseModel):
     answer: str
-    sources: List[Dict[str, Any]]
+    sources: List[SimilarEmbedding]
+    
+class ProcessFileResponse(PBaseModel):
+    filename: str
+    total_chunks: int
+    embedding_ids: List[str]
