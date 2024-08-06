@@ -185,6 +185,7 @@ class CompareEmbeddingsResponse(PBaseModel):
 class StoreEmbeddingRequest(PBaseModel):
     text: str
     metadata: Dict[str, Any]
+    session: Optional[Session] = None
 
 class StoreEmbeddingResponse(PBaseModel):
     embedding_id: str
@@ -192,6 +193,7 @@ class StoreEmbeddingResponse(PBaseModel):
 class SearchSimilarEmbeddingsRequest(PBaseModel):
     text: str
     top_k: int = 5
+    session: Optional[Session] = None
 
 class SimilarEmbedding(PBaseModel):
     id: str
@@ -208,6 +210,7 @@ class RAGRequest(PBaseModel):
     query: str
     model_name: str
     top_k: int = 5
+    session: Optional[Session] = None
 
 class RAGResponse(PBaseModel):
     answer: str

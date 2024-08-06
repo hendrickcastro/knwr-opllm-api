@@ -1,9 +1,9 @@
-from typing import List
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from typing import List, Optional
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from ...models.embeddings import embedding_generator
 from ...models.model_manager import model_manager
 from ...core.chunks.chunk_handler import chunk_handler
-from ...entity.Class import CompareEmbeddingsRequest, Message, ProcessFileResponse, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
+from ...entity.Class import CompareEmbeddingsRequest, Message, Session, ProcessFileResponse, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
 from ...core.storage.vector_database import VectorDatabase
 from ...core.utils import extract_text_from_document
 import logging
@@ -15,20 +15,32 @@ logger = logging.getLogger(__name__)
 router_storage = APIRouter()
 
 @router_storage.post("/store_embedding", response_model=StoreEmbeddingResponse)
-async def store_embedding(request: StoreEmbeddingRequest):
+async def store_embedding(request: StoreEmbeddingRequest, user_id: Optional[str] = Query(None), session_id: Optional[str] = Query(None)):
     try:
         embedding = embedding_generator.generate_embedding(request.text)
-        embedding_id = vector_db.add_embedding(embedding, request.metadata)
+        metadata = request.metadata
+        
+        kwargs = request.session.dict()
+        
+        if kwargs.get("userId"):
+            metadata["userId"] = kwargs.get("userId")
+        if kwargs.get("sessionId"):
+            metadata["sessionId"] = kwargs.get("sessionId")
+        embedding_id = vector_db.add_embedding(embedding, metadata)
         return StoreEmbeddingResponse(embedding_id=embedding_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
 @router_storage.post("/search_similar_embeddings", response_model=SearchSimilarEmbeddingsResponse)
 async def search_similar_embeddings(request: SearchSimilarEmbeddingsRequest):
     try:
         query_embedding = embedding_generator.generate_embedding(request.text)
-        similar_embeddings = vector_db.search_similar(query_embedding, request.top_k)
+        filter_condition = {}
+        if request.session["userId"]:
+            filter_condition["userId"] = filter_condition["userId"]
+        if request.session["sessionId"]:
+            filter_condition["sessionId"] = request.session["sessionId"]
+        similar_embeddings = vector_db.search_similar(query_embedding, request.top_k, filter_condition)
         return SearchSimilarEmbeddingsResponse(similar_embeddings=similar_embeddings)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -66,17 +78,19 @@ async def compare_embeddings(request: CompareEmbeddingsRequest):
 @router_storage.post("/rag", response_model=RAGResponse)
 async def rag_query(request: RAGRequest):
     try:
-        # 1. Generate embedding for the query
         query_embedding = embedding_generator.generate_embedding(request.query)
         
-        # 2. Search for similar embeddings in the vector database
-        similar_embeddings = vector_db.search_similar(query_embedding, request.top_k)
+        filter_condition = {}
+        if request.session["userId"]:
+            filter_condition["userId"] = request.session["userId"]
+        if request.session["sessionId"]:
+            filter_condition["sessionId"] = request.session["sessionId"]
+        
+        similar_embeddings = vector_db.search_similar(query_embedding, request.top_k, filter_condition)
         logger.debug(f"Found {len(similar_embeddings)} similar embeddings")
         
-        # 3. Retrieve the content associated with these embeddings
         context = "\n".join([emb.get('metadata', {}).get('content', '') for emb in similar_embeddings])
         
-        # 4. Generate a prompt that includes the context and the query
         prompt = f"""Use the following context to answer the question. If the answer is not contained in the context, say "I don't have enough information to answer this question."
 
         Context:
@@ -87,11 +101,13 @@ async def rag_query(request: RAGRequest):
         Answer:"""
         
         kwargs = {}
+        if request.session["userId"]:
+            kwargs.setdefault("session", {})["userId"] = request.session["userId"]
+        if request.session["sessionId"]:
+            kwargs.setdefault("session", {})["sessionId"] = request.session["sessionId"]
         
-         # 5. Prepare the message for the chat model
         messages: List[Message] = [Message(role="user", content=prompt)]
         
-        # messages = [{"role": "user", "content": prompt}]
         response = model_manager.generate_chat(
             model_name=request.model_name,
             messages=messages,
@@ -132,18 +148,18 @@ async def rag_query(request: RAGRequest):
     
     
 @router_storage.post("/process_file", response_model=ProcessFileResponse)
-async def process_file(file: UploadFile = File(...), chunk_size: int = 1000, overlap: int = 200, model_name: str = "default_embedding_model" ):
+async def process_file(
+    file: UploadFile = File(...), 
+    chunk_size: int = 1000, 
+    overlap: int = 200, 
+    model_name: str = "default_embedding_model",
+    session: Optional[Session] = None
+):
     try:
-        # 1. Leer el contenido del archivo
         content = await file.read()
-        
-        # 2. Extraer texto del documento
         text = extract_text_from_document(content, file.filename)
-        
-        # 3. Dividir el contenido en chunks
         chunks = chunk_handler.process_chunks(text, 'text', chunk_size=chunk_size, overlap=overlap)
         
-        # 4. Generar embeddings para cada chunk y almacenarlos
         embedding_ids = []
         for i, chunk in enumerate(chunks):
             embedding = embedding_generator.generate_embedding(chunk, model_name)
@@ -155,6 +171,10 @@ async def process_file(file: UploadFile = File(...), chunk_size: int = 1000, ove
                 "chunk_size": chunk_size,
                 "overlap": overlap
             }
+            if session["userId"]:
+                metadata["userId"] = session["userId"]
+            if session["sessionId"]:
+                metadata["sessionId"] = session["sessionId"]
             embedding_id = vector_db.add_embedding(embedding, metadata)
             embedding_ids.append(embedding_id)
         

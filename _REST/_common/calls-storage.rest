@@ -51,6 +51,10 @@ Content-Type: application/json
     "metadata": {
         "source": "La inteligencia artificial",
         "category": "artificial"
+    },
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
     }
 }
 
