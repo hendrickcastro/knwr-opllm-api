@@ -15,17 +15,18 @@ logger = logging.getLogger(__name__)
 router_storage = APIRouter()
 
 @router_storage.post("/store_embedding", response_model=StoreEmbeddingResponse)
-async def store_embedding(request: StoreEmbeddingRequest, user_id: Optional[str] = Query(None), session_id: Optional[str] = Query(None)):
+async def store_embedding(request: StoreEmbeddingRequest):
     try:
         embedding = embedding_generator.generate_embedding(request.text)
         metadata = request.metadata
         
-        kwargs = request.session.dict()
-        
-        if kwargs.get("userId"):
-            metadata["userId"] = kwargs.get("userId")
-        if kwargs.get("sessionId"):
-            metadata["sessionId"] = kwargs.get("sessionId")
+        if request.session is not None:
+            kwargs = request.session.dict()
+            if kwargs.get("userId"):
+                metadata["userId"] = kwargs.get("userId")
+            if kwargs.get("sessionId"):
+                metadata["sessionId"] = kwargs.get("sessionId")
+                
         embedding_id = vector_db.add_embedding(embedding, metadata)
         return StoreEmbeddingResponse(embedding_id=embedding_id)
     except Exception as e:
@@ -36,10 +37,13 @@ async def search_similar_embeddings(request: SearchSimilarEmbeddingsRequest):
     try:
         query_embedding = embedding_generator.generate_embedding(request.text)
         filter_condition = {}
-        if request.session["userId"]:
-            filter_condition["userId"] = filter_condition["userId"]
-        if request.session["sessionId"]:
-            filter_condition["sessionId"] = request.session["sessionId"]
+        
+        if request.session is not None:
+            if request.session["userId"]:
+                filter_condition["userId"] = filter_condition["userId"]
+            if request.session["sessionId"]:
+                filter_condition["sessionId"] = request.session["sessionId"]
+                
         similar_embeddings = vector_db.search_similar(query_embedding, request.top_k, filter_condition)
         return SearchSimilarEmbeddingsResponse(similar_embeddings=similar_embeddings)
     except Exception as e:
@@ -81,10 +85,11 @@ async def rag_query(request: RAGRequest):
         query_embedding = embedding_generator.generate_embedding(request.query)
         
         filter_condition = {}
-        if request.session["userId"]:
-            filter_condition["userId"] = request.session["userId"]
-        if request.session["sessionId"]:
-            filter_condition["sessionId"] = request.session["sessionId"]
+        if request.session is not None:
+            if request.session["userId"]:
+                filter_condition["userId"] = request.session["userId"]
+            if request.session["sessionId"]:
+                filter_condition["sessionId"] = request.session["sessionId"]
         
         similar_embeddings = vector_db.search_similar(query_embedding, request.top_k, filter_condition)
         logger.debug(f"Found {len(similar_embeddings)} similar embeddings")
@@ -101,10 +106,12 @@ async def rag_query(request: RAGRequest):
         Answer:"""
         
         kwargs = {}
-        if request.session["userId"]:
-            kwargs.setdefault("session", {})["userId"] = request.session["userId"]
-        if request.session["sessionId"]:
-            kwargs.setdefault("session", {})["sessionId"] = request.session["sessionId"]
+        
+        if request.session is not None:
+            if request.session["userId"]:
+                kwargs.setdefault("session", {})["userId"] = request.session["userId"]
+            if request.session["sessionId"]:
+                kwargs.setdefault("session", {})["sessionId"] = request.session["sessionId"]
         
         messages: List[Message] = [Message(role="user", content=prompt)]
         
@@ -148,13 +155,7 @@ async def rag_query(request: RAGRequest):
     
     
 @router_storage.post("/process_file", response_model=ProcessFileResponse)
-async def process_file(
-    file: UploadFile = File(...), 
-    chunk_size: int = 1000, 
-    overlap: int = 200, 
-    model_name: str = "default_embedding_model",
-    session: Optional[Session] = None
-):
+async def process_file( file: UploadFile = File(...), chunk_size: int = 1000, overlap: int = 200, model_name: str = "default_embedding_model", session: Optional[Session] = None ):
     try:
         content = await file.read()
         text = extract_text_from_document(content, file.filename)
@@ -171,10 +172,12 @@ async def process_file(
                 "chunk_size": chunk_size,
                 "overlap": overlap
             }
-            if session["userId"]:
-                metadata["userId"] = session["userId"]
-            if session["sessionId"]:
-                metadata["sessionId"] = session["sessionId"]
+            
+            if session is not None:
+                if session["userId"]:
+                    metadata["userId"] = session["userId"]
+                if session["sessionId"]:
+                    metadata["sessionId"] = session["sessionId"]
             embedding_id = vector_db.add_embedding(embedding, metadata)
             embedding_ids.append(embedding_id)
         

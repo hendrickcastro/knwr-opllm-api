@@ -1,3 +1,5 @@
+import base64
+import json
 import chromadb
 from chromadb.config import Settings
 import time
@@ -25,37 +27,56 @@ class VectorDatabase:
             ids=[id]
         )
         
-        # Try to sync immediately with Firestore
+        # Try to sync immediately with Firebase
         if self.check_connection():
             try:
-                self._sync_to_firestore(id, embedding, metadata, timestamp)
-                logger.info(f"Embedding {id} synced to Firestore immediately")
+                self._sync_to_firebase(id, embedding, metadata, timestamp)
+                logger.info(f"Embedding {id} synced to Firebase immediately")
             except Exception as e:
-                logger.error(f"Error syncing embedding {id} to Firestore: {str(e)}")
+                logger.error(f"Error syncing embedding {id} to Firebase: {str(e)}")
                 self.sync_queue.append(('add', id, embedding, metadata, timestamp))
         else:
             self.sync_queue.append(('add', id, embedding, metadata, timestamp))
-            logger.info(f"Embedding {id} queued for later sync to Firestore")
+            logger.info(f"Embedding {id} queued for later sync to Firebase")
         
         return id
-    
 
-    def _sync_to_firestore(self, id: str, embedding: List[float], metadata: Dict[str, Any], timestamp: int):
-        firebase_path = f'{settings.ROOTCOLECCTION}/embeddings'
-        if 'userId' in metadata:
-            firebase_path += f'/{metadata["userId"]}'
-        if 'sessionId' in metadata:
-            firebase_path += f'/{metadata["sessionId"]}'
-        firebase_path += f'/{id}'
+    def _sync_to_firebase(self, id: str, embedding: List[float], metadata: Dict[str, Any], timestamp: int):
+        # Determine the base path for both Storage and Firestore
+        if 'userId' in metadata and 'sessionId' in metadata:
+            base_path = f"{settings.ROOTCOLECCTION}/{metadata['userId']}/{metadata['sessionId']}/{id}"
+        elif 'userId' in metadata:
+            base_path = f"{settings.ROOTCOLECCTION}/{metadata['userId']}/embeddings/{id}"
+        else:
+            base_path = f"{settings.ROOTCOLECCTION}/embeddings/{id}"
+
+        # Storage path (same as base_path)
+        storage_path = f"{base_path}.json"
+
+        # Save embedding to Firebase Storage
+        embedding_json = json.dumps(embedding)
+        embedding_bytes = embedding_json.encode('utf-8')
+        embedding_base64 = base64.b64encode(embedding_bytes).decode('utf-8')
         
-        firebase_result = firebase_connection.add_document(firebase_path, {
-            'embedding': embedding,
+        storage_result = firebase_connection.upload_to_storage(storage_path, embedding_base64)
+        
+        if storage_result is None:
+            raise Exception(f"Failed to upload embedding {id} to Firebase Storage")
+
+        # Firestore path (same as base_path)
+        firestore_path = base_path
+        
+        firestore_data = {
             'metadata': metadata,
-            'last_updated': timestamp
-        })
+            'type': 'embedding',
+            'last_updated': timestamp,
+            'embedding_ref': storage_path  # Reference to the Storage file
+        }
         
-        if firebase_result is None:
-            raise Exception(f"Failed to sync embedding {id} to Firestore")
+        firestore_result = firebase_connection.add_document(firestore_path, firestore_data)
+        
+        if firestore_result is None:
+            raise Exception(f"Failed to sync metadata for embedding {id} to Firestore")
         
 
     def search_similar(self, query_embedding: List[float], top_k: int = 5, filter_condition: Dict[str, Any] = None) -> List[Dict[str, Any]]:
@@ -87,23 +108,33 @@ class VectorDatabase:
             return []
         
 
-    def sync_with_cloud(self):
-        if not self.check_connection():
-            logger.warning("No internet connection. Syncing queued for later.")
-            return
+    def _sync_from_cloud(self):
+        last_local_update = self.get_last_local_update()
+        
+        try:
+            # Sync from Firestore
+            base_ref = firebase_connection.db.collection(settings.ROOTCOLECCTION)
+            
+            # Function to recursively search for embedding documents
+            def search_embeddings(ref):
+                for doc in ref.get():
+                    if doc.id.startswith('emb_'):
+                        data = doc.to_dict()
+                        if data['last_updated'] > last_local_update:
+                            embedding_ref = data.get('embedding_ref')
+                            if embedding_ref:
+                                embedding_base64 = firebase_connection.download_from_storage(embedding_ref)
+                                if embedding_base64:
+                                    embedding_bytes = base64.b64decode(embedding_base64)
+                                    embedding = json.loads(embedding_bytes.decode('utf-8'))
+                                    self.add_embedding(embedding, data['metadata'])
+                    else:
+                        search_embeddings(doc.reference.collections())
 
-        for action, id, embedding, metadata, timestamp in self.sync_queue:
-            if action == 'add':
-                try:
-                    self._sync_to_firestore(id, embedding, metadata, timestamp)
-                    logger.info(f"Queued embedding {id} synced to Firestore")
-                except Exception as e:
-                    logger.error(f"Error syncing queued embedding {id} to Firestore: {str(e)}")
-                    continue  # Keep this item in the queue
-
-        self.sync_queue = [item for item in self.sync_queue if not self._was_synced(item)]
-
-        self._sync_from_cloud()
+            search_embeddings(base_ref)
+            logger.info(f"Synced embeddings from Firebase")
+        except Exception as e:
+            logger.error(f"Error syncing from Firebase: {str(e)}")
         
 
     def _was_synced(self, sync_item):
@@ -120,11 +151,16 @@ class VectorDatabase:
             firestore_updates = firebase_connection.db.collection(f'{settings.ROOTCOLECCTION}/embeddings').where('last_updated', '>', last_local_update).get()
             for doc in firestore_updates:
                 data = doc.to_dict()
-                self.add_embedding(data['embedding'], data['metadata'])
-            logger.info(f"Synced {len(firestore_updates)} embeddings from Firestore")
+                embedding_ref = data.get('embedding_ref')
+                if embedding_ref:
+                    embedding_base64 = firebase_connection.download_from_storage(embedding_ref)
+                    if embedding_base64:
+                        embedding_bytes = base64.b64decode(embedding_base64)
+                        embedding = json.loads(embedding_bytes.decode('utf-8'))
+                        self.add_embedding(embedding, data['metadata'])
+            logger.info(f"Synced {len(firestore_updates)} embeddings from Firebase")
         except Exception as e:
-            logger.error(f"Error syncing from Firestore: {str(e)}")
-            
+            logger.error(f"Error syncing from Firebase: {str(e)}")
 
     def get_last_local_update(self) -> int:
         results = self.collection.query(

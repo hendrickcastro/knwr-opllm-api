@@ -2,8 +2,7 @@ import os
 import json
 from typing import Any, Dict
 import firebase_admin
-from firebase_admin import credentials, firestore
-from firebase_admin import db as realtime_db
+from firebase_admin import credentials, firestore, storage
 import threading
 import time
 
@@ -21,6 +20,7 @@ class FirebaseConnection:
     def _initialize(self):
         self.app = None
         self.db = None
+        self.bucket = None
         self.config_ref = None
         self.local_config = {}
         self.connect()
@@ -36,9 +36,12 @@ class FirebaseConnection:
                         config = json.load(config_file)
 
                     cred = credentials.Certificate(config)
-                    self.app = firebase_admin.initialize_app(cred)
+                    self.app = firebase_admin.initialize_app(cred, {
+                        'storageBucket': f"{config['project_id']}.appspot.com"
+                    })
                 
                 self.db = firestore.client()
+                self.bucket = storage.bucket()
                 self.config_ref = self.db.collection('config').document('app_config')
                 self.load_config()
                 self.start_listener()
@@ -51,6 +54,7 @@ class FirebaseConnection:
                     print("Max retries reached. Unable to connect to Firebase.")
                     self.app = None
                     self.db = None
+                    self.bucket = None
                 else:
                     time.sleep(2 ** retry_count)  # Exponential backoff
                     
@@ -110,6 +114,7 @@ class FirebaseConnection:
                 # Si terminamos en un documento, establecemos los datos
                 current_ref.set(data)
                 return current_ref.id
+            
         except Exception as e:
             print(f"Error adding document to Firebase: {str(e)}")
             return None  # Return None instead of raising an exception
@@ -174,5 +179,28 @@ class FirebaseConnection:
         except Exception as e:
             print(f"Error adding document to Firebase: {str(e)}")
             return None  # Return None instead of raising an exception
+        
+    def upload_to_storage(self, storage_path: str, data: str) -> bool:
+        try:
+            self._ensure_connection()
+            if not self.bucket:
+                raise ValueError("Storage bucket not initialized")
+            blob = self.bucket.blob(storage_path)
+            blob.upload_from_string(data)
+            return True
+        except Exception as e:
+            print(f"Error uploading to Firebase Storage: {str(e)}")
+            return False
+
+    def download_from_storage(self, storage_path: str) -> str:
+        try:
+            self._ensure_connection()
+            if not self.bucket:
+                raise ValueError("Storage bucket not initialized")
+            blob = self.bucket.blob(storage_path)
+            return blob.download_as_text()
+        except Exception as e:
+            print(f"Error downloading from Firebase Storage: {str(e)}")
+            return None
 
 firebase_connection = FirebaseConnection()

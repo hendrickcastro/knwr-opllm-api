@@ -19,7 +19,6 @@ class AnthropicModel(IClient):
 
     def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Dict[str, Any]:
         try:
-            filtered_kwargs = self._filter_kwargs(kwargs)
             response = self.client.messages.create(
                 model=self.model_name,
                 max_tokens=max_tokens or 1024,

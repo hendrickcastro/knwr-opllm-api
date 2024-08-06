@@ -63,6 +63,7 @@ class Settings:
     def DEFAULT_MODELS(self) -> Dict[str, str]:
         default = {
             "gpt-4o-mini": "openai",
+            "gpt-4o-2024-08-06": "openai",
             "gpt-4o-coder": "grok",
             "mistralai/Mixtral-8x7B-Instruct-v0.1": "huggingface",
             "claude-3-5-sonnet-20240620": "anthropic",

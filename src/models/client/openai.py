@@ -22,13 +22,12 @@ class OpenAIModel(IClient):
                 print(f"{key}: {value}")
                 
         try:
-            filtered_kwargs = self._filter_kwargs(**kwargs)
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                **filtered_kwargs
+                **kwargs
             )
             
             # Convert the response to a dictionary
@@ -40,11 +39,6 @@ class OpenAIModel(IClient):
                 "prompt_eval_count": response.usage.prompt_tokens,
                 "eval_count": response.usage.completion_tokens,
             }
-            
-            # Guardar la interacción en Firebase
-            # if kwargs has session object with userId and sessionId properties then save the interaction
-            ToolFunctions.sendToFirebase(self, messages, kwargs, filtered_kwargs, response_dict["message"]['content'], logger)
-            
             return response_dict
         except Exception:
             raise

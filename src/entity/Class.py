@@ -8,7 +8,7 @@ class Message(PBaseModel):
     
 class Session(PBaseModel):
     userId: str
-    sessionId: str
+    sessionId: Optional[str] = None
 
 class ChatRequest(PBaseModel):
     # Parámetros obligatorios
