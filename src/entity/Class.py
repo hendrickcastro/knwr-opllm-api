@@ -7,7 +7,7 @@ class Message(PBaseModel):
     content: str
     
 class Session(PBaseModel):
-    userId: str
+    userId: Optional[str] = None
     sessionId: Optional[str] = None
     
 class RequestBasic(PBaseModel):
@@ -243,3 +243,6 @@ class ListEmbeddingsResponse(PBaseModel):
 
 class GetEmbeddingResponse(PBaseModel):
     embedding: SimilarEmbedding
+    
+class SyncResponse(PBaseModel):
+    message: str

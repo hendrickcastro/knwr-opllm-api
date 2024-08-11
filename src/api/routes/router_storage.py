@@ -3,7 +3,7 @@ from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from ...models.embeddings import embedding_generator
 from ...models.model_manager import model_manager
 from ...core.chunks.chunk_handler import chunk_handler
-from ...entity.Class import CompareEmbeddingsRequest, GetEmbeddingResponse, ListEmbeddingsResponse, Message, RequestBasic, Session, ProcessFileResponse, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
+from ...entity.Class import CompareEmbeddingsRequest, GetEmbeddingResponse, SyncResponse, ListEmbeddingsResponse, Message, RequestBasic, Session, ProcessFileResponse, EmbeddingRequest, EmbeddingResponse, ChunkRequest, ChunkResponse, CompareEmbeddingsResponse, StoreEmbeddingRequest, StoreEmbeddingResponse, SearchSimilarEmbeddingsRequest, SearchSimilarEmbeddingsResponse, RAGRequest, RAGResponse, SimilarEmbedding
 from ...core.storage.vector_database import VectorDatabase
 from ...core.utils import extract_text_from_document
 import logging
@@ -211,3 +211,20 @@ async def get_embedding(embedding_id: str, user_id: Optional[str] = None, sessio
     except Exception as e:
         logger.error(f"Error getting embedding: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+    
+@router_storage.post("/sync_to_firebase", response_model=SyncResponse)
+async def sync_to_firebase():
+    try:
+        vector_db.sync_to_firebase()
+        return SyncResponse(message="Sync to Firebase completed successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error syncing to Firebase: {str(e)}")
+
+@router_storage.post("/sync_from_firebase", response_model=SyncResponse)
+async def sync_from_firebase(request: RequestBasic):
+    try:
+        vector_db.sync_from_firebase(request)
+        return SyncResponse(message="Sync from Firebase completed successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error syncing from Firebase: {str(e)}")
