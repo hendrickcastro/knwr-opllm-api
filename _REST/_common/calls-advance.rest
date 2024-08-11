@@ -1,13 +1,34 @@
 @baseUrl = http://localhost:8000
 # @model_name = gpt-4o-mini
-@model_name = gpt-4o-2024-08-06
-# @model_name = llama3.1:latest
+# @model_name = gpt-4o-2024-08-06
+@model_name = llama3.1:latest
 # @model_name = gemma2:9b
 # @model_name = gemma2:2b
 # @model_name = claude-3-5-sonnet-20240620
 # @model_name = llama-3.1-70b-versatile
 # @model_name = llama-3.1-8b-instant
 # @model_name = mistralai/Mixtral
+
+###
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "model_name": "{{model_name}}",
+    "messages": [
+        {"role": "system", "content": "Eres un asistente que ayuda a los usuarios con información precisa y detallada."},
+        {"role": "user", "content": "Hola, ¿cómo estás?"},
+        {"role": "assistant", "content": "Hola! Estoy aquí para ayudarte con cualquier pregunta que tengas."},
+        {"role": "user", "content": "¿Puedes darme una recomendación de libros sobre inteligencia artificial?"}
+    ],
+    "max_tokens": 150,
+    "temperature": 0.7,
+    "user": "knowcker",
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    }
+}
 
 
 ###
@@ -28,7 +49,6 @@ Content-Type: application/json
     "n": 1,
     "presence_penalty": 0.6,
     "frequency_penalty": 0.0,
-    "user": "knowcker",
     "session": {
         "userId": "knowcker",
         "sessionId": "session-002"

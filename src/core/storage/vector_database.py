@@ -82,31 +82,49 @@ class VectorDatabase:
     def search_similar(self, query_embedding: List[float], top_k: int = 5, filter_condition: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         try:
             where_clause = {}
+
             if filter_condition:
+                conditions = []
+
+                user_id = filter_condition.get('userId')
+                session_id = filter_condition.get('sessionId')
+
+                if user_id:
+                    conditions.append({'userId': {"$eq": user_id}})
+                if session_id:
+                    conditions.append({'sessionId': {"$eq": session_id}})
+
+                # Agregar cualquier otra condición al where_clause
                 for key, value in filter_condition.items():
-                    where_clause[key] = {"$eq": value}
-            
+                    if key not in ['userId', 'sessionId']:
+                        conditions.append({key: {"$eq": value}})
+
+                if conditions:
+                    where_clause = {"$and": conditions}
+
             results = self.collection.query(
                 query_embeddings=[query_embedding],
                 n_results=min(top_k, self.collection.count()),
-                where=where_clause,
+                where=where_clause if where_clause else None,  # Solo incluir where_clause si no está vacío
                 include=["metadatas", "distances", "documents"]
             )
-            
-            similar_embeddings = []
-            for i in range(len(results['ids'][0])):
-                similar_embeddings.append({
+
+            similar_embeddings = [
+                {
                     'id': results['ids'][0][i],
                     'metadata': results['metadatas'][0][i],
                     'content': results['documents'][0][i],
                     'cosine_similarity': 1 - results['distances'][0][i]
-                })
-            
+                }
+                for i in range(len(results['ids'][0]))
+            ]
+
             return similar_embeddings
+
         except Exception as e:
             logger.error(f"Error searching similar embeddings: {str(e)}", exc_info=True)
             return []
-        
+
 
     def _sync_from_cloud(self):
         last_local_update = self.get_last_local_update()
@@ -248,7 +266,67 @@ class VectorDatabase:
         except Exception as e:
             logger.error(f"Error updating document: {str(e)}")
             return False
-        
+    
+    def list_embeddings(self, user_id: str = None, session_id: str = None) -> List[Dict[str, Any]]:
+        try:
+            where_clause = {}
+            conditions = []
+
+            if user_id:
+                conditions.append({'userId': {"$eq": user_id}})
+            if session_id:
+                conditions.append({'sessionId': {"$eq": session_id}})
+            
+            if conditions:
+                where_clause = {"$and": conditions}
+
+            results = self.collection.query(
+                query_embeddings=[[0] * 384],  # Dummy embedding
+                n_results=self.collection.count(),
+                where=where_clause,
+                include=["metadatas", "documents"]
+            )
+
+            embeddings = []
+            for i in range(len(results['ids'][0])):
+                embeddings.append({
+                    'id': results['ids'][0][i],
+                    'metadata': results['metadatas'][0][i],
+                    'content': results['documents'][0][i]
+                })
+            return embeddings
+        except Exception as e:
+            logger.error(f"Error listing embeddings: {str(e)}", exc_info=True)
+            return []
+
+    
+    def get_embedding_by_id(self, embedding_id: str, user_id: str = None, session_id: str = None) -> Dict[str, Any]:
+        try:
+            where_clause = {"id": {"$eq": embedding_id}}
+            if user_id:
+                where_clause['userId'] = {"$eq": user_id}
+            if session_id:
+                where_clause['sessionId'] = {"$eq": session_id}
+
+            results = self.collection.query(
+                query_embeddings=[[0] * 384],  # Dummy embedding
+                n_results=1,
+                where=where_clause,
+                include=["metadatas", "documents"]
+            )
+
+            if results['ids']:
+                return {
+                    "id": results['ids'][0],
+                    "metadata": results['metadatas'][0],
+                    "content": results['documents'][0]
+                }
+            else:
+                logger.warning(f"Embedding with id {embedding_id} not found")
+                return None
+        except Exception as e:
+            logger.error(f"Error getting embedding by id: {str(e)}", exc_info=True)
+            return None
 
 # Uso
 vector_db = VectorDatabase('./db/localv.db')

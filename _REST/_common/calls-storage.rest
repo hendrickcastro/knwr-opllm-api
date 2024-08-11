@@ -6,6 +6,43 @@
 # @model_name = mistralai/Mixtral
 
 
+### Almacenar embedding
+POST {{baseUrl}}/storage/store_embedding
+Content-Type: application/json
+
+{
+    "text": "Haciendo un bizcocho de fresa",
+    "metadata": {
+        "source": "bizcochco",
+        "category": "cooking"
+    },
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    }
+}
+
+###
+POST {{baseUrl}}/storage/list_embeddings
+content-type: application/json
+
+{
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    }
+}
+
+### Buscar embeddings similares
+POST {{baseUrl}}/storage/search_similar_embeddings
+Content-Type: application/json
+
+{
+    "text": "inteligencia",
+    "top_k": 5
+}
+
+
 ### Realizar una consulta RAG
 POST {{baseUrl}}/storage/rag
 Content-Type: application/json
@@ -40,27 +77,6 @@ Content-Type: application/json
 {
     "text1": "Inteligencia artificial",
     "text2": "Machine learning"
-}
-
-### Almacenar embedding
-POST {{baseUrl}}/storage/store_embedding
-Content-Type: application/json
-
-{
-    "text": "La inteligencia artificial en la atención médica ofrece varios beneficios, como la mejora en la precisión del diagnóstico",
-    "metadata": {
-        "source": "La inteligencia artificial",
-        "category": "artificial"
-    }
-}
-
-### Buscar embeddings similares
-POST {{baseUrl}}/storage/search_similar_embeddings
-Content-Type: application/json
-
-{
-    "text": "inteligencia artificial",
-    "top_k": 5
 }
 
 ### Consulta RAG

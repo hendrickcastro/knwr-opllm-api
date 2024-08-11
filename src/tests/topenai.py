@@ -1,18 +1,20 @@
+import os
 from pydantic import BaseModel
 from openai import OpenAI
+from dotenv import load_dotenv
 
-
+load_dotenv()
 class Step(BaseModel):
     explanation: str
     output: str
 
-
 class MathResponse(BaseModel):
     steps: list[Step]
     final_answer: str
+    
+api_key = os.getenv('OPENAI_API_KEY')
 
-
-client = OpenAI(api_key='none')
+client = OpenAI(api_key=api_key)
 
 completion = client.beta.chat.completions.parse(
     model="gpt-4o-2024-08-06",

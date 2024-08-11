@@ -9,6 +9,13 @@ class Message(PBaseModel):
 class Session(PBaseModel):
     userId: str
     sessionId: Optional[str] = None
+    
+class RequestBasic(PBaseModel):
+    model_name: Optional[str] = None
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    top_p: Optional[float] = None
+    session: Optional[Session] = None
 
 class ChatRequest(PBaseModel):
     # Parámetros obligatorios
@@ -220,3 +227,18 @@ class ProcessFileResponse(PBaseModel):
     filename: str
     total_chunks: int
     embedding_ids: List[str]
+    
+class EmbeddingResponse(PBaseModel):
+    embedding: List[float]
+
+class SimilarEmbedding(PBaseModel):
+    id: str
+    metadata: Dict[str, Any]
+    cosine_similarity: Optional[float] = None
+    content: Optional[str] = None
+
+class ListEmbeddingsResponse(PBaseModel):
+    embeddings: List[SimilarEmbedding]
+
+class GetEmbeddingResponse(PBaseModel):
+    embedding: SimilarEmbedding
