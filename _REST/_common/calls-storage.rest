@@ -11,6 +11,22 @@ POST {{baseUrl}}/storage/store_embedding
 Content-Type: application/json
 
 {
+    "text": "La inteligencia artificial en la atención médica ofrece varios beneficios, como la mejora en la precisión del diagnóstico",
+    "metadata": {
+        "source": "La inteligencia artificial",
+        "category": "artificial"
+    },
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    }
+}
+
+### Almacenar embedding
+POST {{baseUrl}}/storage/store_embedding
+Content-Type: application/json
+
+{
     "text": "Haciendo un bizcocho de fresa",
     "metadata": {
         "source": "bizcochco",
@@ -38,8 +54,13 @@ POST {{baseUrl}}/storage/search_similar_embeddings
 Content-Type: application/json
 
 {
-    "text": "inteligencia",
-    "top_k": 5
+    "text": "bizcocho de fresa",
+    "top_k": 5,
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    },
+    "cosine_similarity": 0.6
 }
 
 

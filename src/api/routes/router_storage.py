@@ -53,6 +53,9 @@ async def search_similar_embeddings(request: SearchSimilarEmbeddingsRequest):
         query_embedding = embedding_generator.generate_embedding(request.text)
         filter_condition = {}
         
+        if request.cosine_similarity:
+            filter_condition["cosine_similarity"] = request.cosine_similarity
+        
         if request.session:
             if request.session.userId:
                 filter_condition["userId"] = request.session.userId
