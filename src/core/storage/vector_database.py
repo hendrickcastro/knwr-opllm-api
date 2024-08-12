@@ -3,8 +3,10 @@ import json
 import chromadb
 from chromadb.config import Settings
 import time
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from src.entity.Class import RequestBasic
 from src.core.storage.firebase import firebase_connection
+from src.core.storage.firebase_sync.sync import sync_to_firebase, sync_from_firebase
 from src.core.config import settings
 from src.core.utils import setup_logger
 
@@ -18,7 +20,11 @@ class VectorDatabase:
 
     def add_embedding(self, embedding: List[float], metadata: Dict[str, Any]) -> str:
         timestamp = int(time.time())
-        id = f"emb_{timestamp}"
+        id = None
+        if metadata.get('id'):
+            id = metadata['id']
+        else:
+            id = f"emb_{timestamp}"
         
         # Add to local ChromaDB
         self.collection.add(
@@ -28,7 +34,7 @@ class VectorDatabase:
         )
         
         # Try to sync immediately with Firebase
-        if self.check_connection():
+        if self.check_connection() and metadata.get('id') is None:
             try:
                 self._sync_to_firebase(id, embedding, metadata, timestamp)
                 logger.info(f"Embedding {id} synced to Firebase immediately")
@@ -48,7 +54,7 @@ class VectorDatabase:
         elif 'userId' in metadata:
             base_path = f"{settings.ROOTCOLECCTION}/{metadata['userId']}/embeddings/{id}"
         else:
-            base_path = f"{settings.ROOTCOLECCTION}/embeddings/{id}"
+            base_path = f"{settings.ROOTCOLECCTION}/embeddings/root/{id}"
 
         # Storage path (same as base_path)
         storage_path = f"{base_path}.json"
@@ -66,6 +72,7 @@ class VectorDatabase:
         # Firestore path (same as base_path)
         firestore_path = base_path
         
+        metadata['id'] = id
         firestore_data = {
             'metadata': metadata,
             'type': 'embedding',
@@ -82,77 +89,94 @@ class VectorDatabase:
     def search_similar(self, query_embedding: List[float], top_k: int = 5, filter_condition: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         try:
             where_clause = {}
+            similarity_threshold = 0.0
 
             if filter_condition:
                 conditions = []
 
-                user_id = filter_condition.get('userId')
-                session_id = filter_condition.get('sessionId')
-
-                if user_id:
-                    conditions.append({'userId': {"$eq": user_id}})
-                if session_id:
-                    conditions.append({'sessionId': {"$eq": session_id}})
-
-                # Agregar cualquier otra condición al where_clause
+                if 'cosine_similarity' in filter_condition:
+                    similarity_threshold = filter_condition.pop('cosine_similarity', 0.0)
+                
                 for key, value in filter_condition.items():
-                    if key not in ['userId', 'sessionId']:
+                    if isinstance(value, dict):
+                        operator, match_value = next(iter(value.items()))
+                        conditions.append({key: {operator: match_value}})
+                    else:
                         conditions.append({key: {"$eq": value}})
 
-                if conditions:
+                if conditions and len(conditions) > 1:
                     where_clause = {"$and": conditions}
 
             results = self.collection.query(
                 query_embeddings=[query_embedding],
                 n_results=min(top_k, self.collection.count()),
-                where=where_clause if where_clause else None,  # Solo incluir where_clause si no está vacío
+                where=where_clause if where_clause else None,
                 include=["metadatas", "distances", "documents"]
             )
-
-            similar_embeddings = [
-                {
-                    'id': results['ids'][0][i],
-                    'metadata': results['metadatas'][0][i],
-                    'content': results['documents'][0][i],
-                    'cosine_similarity': 1 - results['distances'][0][i]
-                }
-                for i in range(len(results['ids'][0]))
-            ]
+            
+            similar_embeddings = []
+            for i in range(len(results['ids'][0])):
+                cosine_similarity = 1 - results['distances'][0][i]
+                if cosine_similarity >= similarity_threshold:
+                    similar_embeddings.append({
+                        'id': results['ids'][0][i],
+                        'metadata': results['metadatas'][0][i],
+                        'content': results['documents'][0][i],
+                        'cosine_similarity': cosine_similarity
+                    })
 
             return similar_embeddings
+
+            # similar_embeddings = [
+            #     {
+            #         'id': results['ids'][0][i],
+            #         'metadata': results['metadatas'][0][i],
+            #         'content': results['documents'][0][i],
+            #         'cosine_similarity': 1 - results['distances'][0][i]
+            #     }
+            #     for i in range(len(results['ids'][0]))
+            # ]
+
+            # return similar_embeddings
 
         except Exception as e:
             logger.error(f"Error searching similar embeddings: {str(e)}", exc_info=True)
             return []
 
 
-    def _sync_from_cloud(self):
-        last_local_update = self.get_last_local_update()
-        
-        try:
-            # Sync from Firestore
-            base_ref = firebase_connection.db.collection(settings.ROOTCOLECCTION)
-            
-            # Function to recursively search for embedding documents
-            def search_embeddings(ref):
-                for doc in ref.get():
-                    if doc.id.startswith('emb_'):
-                        data = doc.to_dict()
-                        if data['last_updated'] > last_local_update:
-                            embedding_ref = data.get('embedding_ref')
-                            if embedding_ref:
-                                embedding_base64 = firebase_connection.download_from_storage(embedding_ref)
-                                if embedding_base64:
-                                    embedding_bytes = base64.b64decode(embedding_base64)
-                                    embedding = json.loads(embedding_bytes.decode('utf-8'))
-                                    self.add_embedding(embedding, data['metadata'])
-                    else:
-                        search_embeddings(doc.reference.collections())
+    def sync_to_firebase(self):
+        while self.sync_queue:
+            action, *args = self.sync_queue.pop(0)
+            try:
+                if action == 'add':
+                    sync_to_firebase(*args)
+                # Add more actions as needed
+            except Exception as e:
+                logger.error(f"Error syncing to Firebase: {str(e)}")
+                self.sync_queue.append((action, *args))
 
-            search_embeddings(base_ref)
-            logger.info(f"Synced embeddings from Firebase")
+    def sync_from_firebase(self, filters: RequestBasic = None):
+        try:
+            # Obtener embeddings de Firebase
+            existing_ids = set(self.collection.get()['ids'])
+            
+            synced_embeddings = sync_from_firebase(filters, existing_ids)
+            
+            # Obtener los IDs de embeddings existentes en la base de datos local
+            
+            embeddings_to_add = []
+            for emb in synced_embeddings:
+                emb_id = emb['metadata'].get('id')
+                if emb_id and emb_id.startswith('emb_') and emb_id not in existing_ids:
+                    embeddings_to_add.append(emb)
+            
+            # Añadir solo los embeddings que faltan
+            for emb in embeddings_to_add:
+                self.add_embedding(emb['embedding'], emb['metadata'])
+            
+            logger.info(f"Synced {len(embeddings_to_add)} new embeddings from Firebase")
         except Exception as e:
-            logger.error(f"Error syncing from Firebase: {str(e)}")
+            logger.error(f"Error syncing from Firebase: {str(e)}", exc_info=True)
         
 
     def _was_synced(self, sync_item):
@@ -161,36 +185,31 @@ class VectorDatabase:
         return False
     
 
-    def _sync_from_cloud(self):
-        last_local_update = self.get_last_local_update()
-        
-        try:
-            # Sync from Firestore
-            firestore_updates = firebase_connection.db.collection(f'{settings.ROOTCOLECCTION}/embeddings').where('last_updated', '>', last_local_update).get()
-            for doc in firestore_updates:
-                data = doc.to_dict()
-                embedding_ref = data.get('embedding_ref')
-                if embedding_ref:
-                    embedding_base64 = firebase_connection.download_from_storage(embedding_ref)
-                    if embedding_base64:
-                        embedding_bytes = base64.b64decode(embedding_base64)
-                        embedding = json.loads(embedding_bytes.decode('utf-8'))
-                        self.add_embedding(embedding, data['metadata'])
-            logger.info(f"Synced {len(firestore_updates)} embeddings from Firebase")
-        except Exception as e:
-            logger.error(f"Error syncing from Firebase: {str(e)}")
+    # def get_last_local_update(self) -> int:
+    #     try:
+    #         collection_count = self.collection.count()
+    #         if collection_count == 0:
+    #             logger.info("Collection is empty, returning 0 as last update time")
+    #             return 0
 
-    def get_last_local_update(self) -> int:
-        results = self.collection.query(
-            query_embeddings=[[0] * 384],  # Dummy embedding
-            n_results=1,
-            where={"last_updated": {"$exists": True}},
-            include=["metadatas"]
-        )
-        if results['metadatas'] and results['metadatas'][0]:
-            return results['metadatas'][0][0].get('last_updated', 0)
-        return 0
-    
+    #         # Request just one result, ordered by last_updated in descending order
+    #         results = self.collection.query(
+    #             query_embeddings=[[0] * 384],  # Dummy embedding
+    #             n_results=1,
+    #             where={},
+    #             include=["metadatas"]
+    #         )
+            
+    #         if results['metadatas'] and results['metadatas'][0]:
+    #             last_updated = results['metadatas'][0][0].get('last_updated', 0)
+    #             logger.info(f"Last local update time: {last_updated}")
+    #             return last_updated
+            
+    #         logger.warning("No metadata found in the collection")
+    #         return 0
+    #     except Exception as e:
+    #         logger.error(f"Error getting last local update: {str(e)}")
+    #         return 0
 
     def check_connection(self) -> bool:
         # Implement real connection check logic here
@@ -277,7 +296,7 @@ class VectorDatabase:
             if session_id:
                 conditions.append({'sessionId': {"$eq": session_id}})
             
-            if conditions:
+            if conditions and len(conditions) > 1:
                 where_clause = {"$and": conditions}
 
             results = self.collection.query(

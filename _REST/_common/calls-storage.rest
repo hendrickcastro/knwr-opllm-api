@@ -11,14 +11,41 @@ POST {{baseUrl}}/storage/store_embedding
 Content-Type: application/json
 
 {
+    "text": "La inteligencia artificial en la atención médica ofrece varios beneficios, como la mejora en la precisión del diagnóstico",
+    "metadata": {
+        "source": "La inteligencia artificial",
+        "category": "artificial"
+    }
+}
+
+### Almacenar embedding
+POST {{baseUrl}}/storage/store_embedding
+Content-Type: application/json
+
+{
+    "text": "La inteligencia artificial en la atención médica ofrece varios beneficios, como la mejora en la precisión del diagnóstico",
+    "metadata": {
+        "source": "La inteligencia artificial",
+        "category": "artificial"
+    },
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    }
+}
+
+### Almacenar embedding
+POST {{baseUrl}}/storage/store_embedding
+Content-Type: application/json
+
+{
     "text": "Haciendo un bizcocho de fresa",
     "metadata": {
         "source": "bizcochco",
         "category": "cooking"
     },
     "session": {
-        "userId": "knowcker",
-        "sessionId": "session-002"
+        "userId": "knowcker"
     }
 }
 
@@ -38,8 +65,13 @@ POST {{baseUrl}}/storage/search_similar_embeddings
 Content-Type: application/json
 
 {
-    "text": "inteligencia",
-    "top_k": 5
+    "text": "bizcocho de fresa",
+    "top_k": 5,
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    },
+    "cosine_similarity": 0.6
 }
 
 
@@ -99,6 +131,17 @@ Content-Type: application/json
 {
     "model_name": "{{model_name}}",
     "model_type": "ollama"
+}
+
+### Cargar un modelo
+POST {{baseUrl}}/storage/sync_from_firebase
+Content-Type: application/json
+
+{
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    }
 }
 
 ### Verificar conexión con Ollama

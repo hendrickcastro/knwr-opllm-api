@@ -7,7 +7,7 @@ class Message(PBaseModel):
     content: str
     
 class Session(PBaseModel):
-    userId: str
+    userId: Optional[str] = None
     sessionId: Optional[str] = None
     
 class RequestBasic(PBaseModel):
@@ -201,6 +201,7 @@ class SearchSimilarEmbeddingsRequest(PBaseModel):
     text: str
     top_k: int = 5
     session: Optional[Session] = None
+    cosine_similarity: Optional[float] = 0.6
 
 class SimilarEmbedding(PBaseModel):
     id: str
@@ -242,3 +243,6 @@ class ListEmbeddingsResponse(PBaseModel):
 
 class GetEmbeddingResponse(PBaseModel):
     embedding: SimilarEmbedding
+    
+class SyncResponse(PBaseModel):
+    message: str
