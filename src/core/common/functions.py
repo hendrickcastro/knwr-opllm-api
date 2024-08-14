@@ -15,7 +15,7 @@ class ToolFunctions():
     def generate_guid(self) -> str:
         return str(uuid.uuid4())
     
-    def sendToFirebase(self, model_name: str, messages: list, kwargs: Dict[str, Any], filtered_kwargs: Dict[str, Any], resp: Any, logger: Any):
+    def sendToFirebase(self, modelName: str, messages: list, kwargs: Dict[str, Any], filtered_kwargs: Dict[str, Any], resp: Any, logger: Any):
         if "session" in kwargs and kwargs["session"] is not None and "userId" in kwargs["session"] and "sessionId" in kwargs["session"]:
             session = kwargs["session"]
             now = datetime.datetime.now()
@@ -25,8 +25,9 @@ class ToolFunctions():
                     "userId": session["userId"],
                     "sessionId": session["sessionId"],
                     "guid": guid,
+                    "type": "session",
                     "create": now.strftime("%Y-%m-%d %H:%M:%S"),
-                    "model": model_name,
+                    "model": modelName,
                     "request": messages[-1]["content"],
                     "options": filtered_kwargs,
                     "response": resp,
@@ -36,7 +37,7 @@ class ToolFunctions():
             doc_id = firebase_connection.add_document(f'{settings.ROOTCOLECCTION}/{session.get("userId")}/{session.get("sessionId")}', llm_data)
             logger.info(f"Saved LLM interaction to Firebase with ID: {doc_id}")
             
-    def saveSessionData(self, model_name: str, input_data: Any, kwargs: Dict[str, Any], filtered_kwargs: Dict[str, Any], response: Any, logger: Any) -> None:
+    def saveSessionData(self, modelName: str, input_data: Any, kwargs: Dict[str, Any], filtered_kwargs: Dict[str, Any], response: Any, logger: Any) -> None:
         try:
             if "session" in kwargs and kwargs["session"] is not None and "userId" in kwargs["session"] and "sessionId" in kwargs["session"]:
                 session = kwargs["session"]
@@ -46,8 +47,9 @@ class ToolFunctions():
                     "userId": session["userId"],
                     "sessionId": session["sessionId"],
                     "guid": guid,
+                    "type": "session",
                     "create": now.strftime("%Y-%m-%d %H:%M:%S"),
-                    "model": model_name,
+                    "model": modelName,
                     "request": str(input_data),
                     "options": filtered_kwargs,
                     "response": response,

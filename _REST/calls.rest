@@ -1,31 +1,31 @@
 @baseUrl = http://localhost:8000
-# @model_name = gpt-4o-mini
-# @model_name = mistral:latest
-# @model_name = llama3-70b-8192:latest
-@model_name = llama3.1:8b
+# @modelName = gpt-4o-mini
+# @modelName = mistral:latest
+# @modelName = llama3-70b-8192:latest
+@modelName = llama3.1:8b
 
 ### List all loaded models
 
 GET {{baseUrl}}/models
 
 ### Load Ollama model
-POST {{baseUrl}}/load_model?model_name=llama3-70b-8192:latest&model_type=grok
+POST {{baseUrl}}/load_model?modelName=llama3-70b-8192:latest&model_type=grok
 
 ### Load Ollama model
-POST {{baseUrl}}/load_model?model_name=mistral&model_type=ollama
+POST {{baseUrl}}/load_model?modelName=mistral&model_type=ollama
 
 ### Load OpenAI model
-POST {{baseUrl}}/load_model?model_name=gpt-4o-mini&model_type=openai
+POST {{baseUrl}}/load_model?modelName=gpt-4o-mini&model_type=openai
 
 ### Load HuggingFace model
-POST {{baseUrl}}/load_model?model_name=mistralai/Mixtral-8x7B-Instruct-v0.1&model_type=huggingface
+POST {{baseUrl}}/load_model?modelName=mistralai/Mixtral-8x7B-Instruct-v0.1&model_type=huggingface
 
 ### Generate text with OpenAI model
 POST {{baseUrl}}/generate
 Content-Type: application/json
 
 {
-    "model": "{{model_name}}",
+    "model": "{{modelName}}",
     "prompt": "Explica brevemente qué es la inteligencia artificial.",
     "max_tokens": 1000,
     "temperature": 2
@@ -36,7 +36,7 @@ POST {{baseUrl}}/generate
 Content-Type: application/json
 
 {
-    "model": "{{model_name}}",
+    "model": "{{modelName}}",
     "prompt": "Explica brevemente qué es la inteligencia artificial.",
     "max_tokens": 1000,
     "temperature": 0.7
@@ -48,7 +48,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "user",
@@ -80,7 +80,7 @@ POST {{baseUrl}}/autoagent
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "task_description": "Analizar sentimiento de un texto",
     "user_input": "Me encanta programar en Python, es muy divertido y útil."
 }

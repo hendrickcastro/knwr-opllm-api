@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:8000
+@modelName = gpt-4o-mini
+@modelName = llama3.1:latest
+# @modelName = claude-3-5-sonnet-20240620
+# @modelName = llama-3.1-70b-versatile
+# @modelName = mistralai/Mixtral
+
+
+### Generar embedding
+POST {{baseUrl}}/sessions/sync_from_firebase/knowcker
+Content-Type: application/json
+
+{
+    
+}
+
+### Generar embedding
+POST {{baseUrl}}/sessions/sync_to_firebase/knowcker
+Content-Type: application/json
+
+{
+    
+}
+
+### Generar embedding
+DELETE {{baseUrl}}/sessions/knowcker/userid/session-002/sessionid/05c7997b-0346-4301-8e77-9dca396c7d96/guid
+Content-Type: application/json
+
+{}

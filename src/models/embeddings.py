@@ -6,8 +6,8 @@ from ..core.utils import setup_logger
 logger = setup_logger(__name__)
 
 class EmbeddingGenerator:
-    def __init__(self, model_name: str = 'all-MiniLM-L6-v2'):
-        self.model = SentenceTransformer(model_name)
+    def __init__(self, modelName: str = 'all-MiniLM-L6-v2'):
+        self.model = SentenceTransformer(modelName)
 
     def generate_embedding(self, text: str) -> List[float]:
         try:

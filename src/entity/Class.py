@@ -7,12 +7,20 @@ class Message(PBaseModel):
     content: str
     
 class Session(PBaseModel):
-    userId: str
-    sessionId: str
+    userId: Optional[str] = None
+    sessionId: Optional[str] = None
+    
+class RequestBasic(PBaseModel):
+    prompt: Optional[str] = None
+    modelName: Optional[str] = None
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    top_p: Optional[float] = None
+    session: Optional[Session] = None
 
 class ChatRequest(PBaseModel):
     # Parámetros obligatorios
-    model_name: str
+    modelName: str
     messages: List[Message]
     session: Optional[Session] = None
 
@@ -159,7 +167,7 @@ class ChunkResponse(PBaseModel):
     chunks: List[str]
 
 class AutoAgentRequest(PBaseModel):
-    model_name: str = Field(..., alias='model_name')
+    modelName: str = Field(..., alias='modelName')
     task_description: str
     user_input: str
 
@@ -185,6 +193,7 @@ class CompareEmbeddingsResponse(PBaseModel):
 class StoreEmbeddingRequest(PBaseModel):
     text: str
     metadata: Dict[str, Any]
+    session: Optional[Session] = None
 
 class StoreEmbeddingResponse(PBaseModel):
     embedding_id: str
@@ -192,6 +201,8 @@ class StoreEmbeddingResponse(PBaseModel):
 class SearchSimilarEmbeddingsRequest(PBaseModel):
     text: str
     top_k: int = 5
+    session: Optional[Session] = None
+    cosine_similarity: Optional[float] = 0.6
 
 class SimilarEmbedding(PBaseModel):
     id: str
@@ -206,9 +217,33 @@ class GenerateResponse(PBaseModel):
     
 class RAGRequest(PBaseModel):
     query: str
-    model_name: str
+    modelName: str
     top_k: int = 5
+    session: Optional[Session] = None
 
 class RAGResponse(PBaseModel):
     answer: str
-    sources: List[Dict[str, Any]]
+    sources: List[SimilarEmbedding]
+    
+class ProcessFileResponse(PBaseModel):
+    filename: str
+    total_chunks: int
+    embedding_ids: List[str]
+    
+class EmbeddingResponse(PBaseModel):
+    embedding: List[float]
+
+class SimilarEmbedding(PBaseModel):
+    id: str
+    metadata: Dict[str, Any]
+    cosine_similarity: Optional[float] = None
+    content: Optional[str] = None
+
+class ListEmbeddingsResponse(PBaseModel):
+    embeddings: List[SimilarEmbedding]
+
+class GetEmbeddingResponse(PBaseModel):
+    embedding: SimilarEmbedding
+    
+class SyncResponse(PBaseModel):
+    message: str

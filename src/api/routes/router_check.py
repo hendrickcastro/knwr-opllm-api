@@ -15,10 +15,10 @@ async def list_models():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router_check.post("/load_model")
-async def load_model(model_name: str, model_type: str):
+async def load_model(modelName: str, model_type: str):
     try:
-        model_manager.load_model(model_name, model_type)
-        return {"message": f"Model {model_name} loaded successfully"}
+        model_manager.load_model(modelName, model_type)
+        return {"message": f"Model {modelName} loaded successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

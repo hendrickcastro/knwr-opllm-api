@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:8000
 
-# @model_name = mistral:latest
-@model_name = gpt-4o-mini
+# @modelName = mistral:latest
+@modelName = gpt-4o-mini
 
 ### Generar y almacenar embedding de un texto largo
 POST {{baseUrl}}/store_embedding
@@ -31,7 +31,7 @@ POST {{baseUrl}}/generate
 Content-Type: application/json
 
 {
-    "model": "{{model_name}}",
+    "model": "{{modelName}}",
     "prompt": "Basándote en la siguiente información sobre inteligencia artificial, genera un resumen de 150 palabras sobre sus aplicaciones prácticas en la industria actual: {resultado_de_busqueda_de_embeddings}",
     "max_tokens": 200
 }
@@ -59,7 +59,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "user",
@@ -91,7 +91,7 @@ POST {{baseUrl}}/generate
 Content-Type: application/json
 
 {
-    "model": "{{model_name}}",
+    "model": "{{modelName}}",
     "prompt": "Escribe una historia corta de ciencia ficción de 300 palabras que incorpore los siguientes conceptos y cualquier idea relacionada que hayas encontrado: viajes espaciales, colonización de Marte, tecnología futurista. Contexto adicional: {resultado_de_busqueda_de_embeddings}",
     "max_tokens": 400
 }
@@ -119,7 +119,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "message": "Proporciona una respuesta detallada y bien estructurada a la siguiente pregunta, utilizando la información adicional proporcionada como contexto. Asegúrate de abordar tanto las implicaciones éticas como las sociales, y proporciona ejemplos concretos cuando sea posible.\n\nPregunta: '¿Cuáles son las implicaciones éticas y sociales del uso generalizado de la inteligencia artificial en la toma de decisiones gubernamentales y corporativas?'\n\nContexto adicional: {resultado_de_busqueda_de_embeddings}"
 }
 
@@ -146,7 +146,7 @@ POST {{baseUrl}}/generate
 Content-Type: application/json
 
 {
-    "model": "{{model_name}}",
+    "model": "{{modelName}}",
     "prompt": "Escribe una función en Python para analizar sentimientos de tweets utilizando procesamiento de lenguaje natural y machine learning. Utiliza los siguientes ejemplos similares como referencia, pero asegúrate de que el código sea original y bien comentado:\n\n{resultado_de_busqueda_de_embeddings}\n\nIncluye comentarios explicativos y docstrings apropiados.",
     "max_tokens": 500
 }

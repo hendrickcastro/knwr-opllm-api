@@ -1,21 +1,81 @@
 @baseUrl = http://localhost:8000
-# @model_name = gpt-4o-mini
-# @model_name = llama3.1:latest
-# @model_name = claude-3-5-sonnet-20240620
-@model_name = llama-3.1-70b-versatile
-# @model_name = mistralai/Mixtral
+@modelName = gpt-4o-mini
+# @modelName = gpt-4o-2024-08-06
+@modelName = llama3.1:latest
+# @modelName = gemma2:9b
+# @modelName = gemma2:2b
+# @modelName = claude-3-5-sonnet-20240620
+# @modelName = llama-3.1-70b-versatile
+# @modelName = llama-3.1-8b-instant
+# @modelName = mistralai/Mixtral
 
+###
 
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+    "modelName": "{{modelName}}",
+    "prompt": "Escribe una historia corta de ciencia ficción de 300 palabras que incorpore los siguientes conceptos y cualquier idea relacionada que hayas encontrado: viajes espaciales, colonización de Marte, tecnología futurista. Contexto adicional: {resultado_de_busqueda_de_embeddings}",
+    "max_tokens": 400
+}
+
+###
 POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {"role": "system", "content": "Eres un asistente que ayuda a los usuarios con información precisa y detallada."},
         {"role": "user", "content": "Hola, ¿cómo estás?"},
         {"role": "assistant", "content": "Hola! Estoy aquí para ayudarte con cualquier pregunta que tengas."},
         {"role": "user", "content": "¿Puedes darme una recomendación de libros sobre inteligencia artificial?"}
+    ],
+    "max_tokens": 150,
+    "temperature": 0.7,
+    "user": "knowcker",
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    }
+}
+
+
+###
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "modelName": "{{modelName}}",
+    "messages": [
+        {"role": "system", "content": "Eres un asistente que ayuda a los usuarios con información precisa y detallada."},
+        {"role": "user", "content": "Hola, ¿cómo estás?"},
+        {"role": "assistant", "content": "Hola! Estoy aquí para ayudarte con cualquier pregunta que tengas."},
+        {"role": "user", "content": "¿Puedes darme una recomendación de libros sobre inteligencia artificial?"}
+    ],
+    "max_tokens": 150,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "n": 1,
+    "presence_penalty": 0.6,
+    "frequency_penalty": 0.0,
+    "session": {
+        "userId": "knowcker",
+        "sessionId": "session-002"
+    }
+}
+
+
+###
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "modelName": "{{modelName}}",
+    "messages": [
+        {"role": "system", "content": "Eres un asistente que ayuda a los usuarios con información precisa y detallada."},
+        {"role": "user", "content": "cuantas r tiene la palabra strawberry"}
     ],
     "max_tokens": 150,
     "temperature": 0.7,
@@ -35,7 +95,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
@@ -57,7 +117,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
@@ -75,7 +135,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
@@ -93,7 +153,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
@@ -111,7 +171,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
