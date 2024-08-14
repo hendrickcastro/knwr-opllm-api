@@ -131,6 +131,8 @@ class ChatResponse(PBaseModel):
         elif isinstance(response.get("message"), list):
             # Si es una lista, tomamos el primer elemento
             message_content = response["message"][0].text if hasattr(response["message"][0], 'text') else str(response["message"][0])
+        elif isinstance(response.get("response"), str):
+            message_content = response.get("response", "")
         else:
             message_content = str(response.get("message", ""))
 
