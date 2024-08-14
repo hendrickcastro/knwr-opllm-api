@@ -126,7 +126,7 @@ async def rag_query(request: RAGRequest):
         messages: List[Message] = [Message(role="user", content=prompt)]
         
         response = model_manager.generate_chat(
-            model_name=request.model_name,
+            modelName=request.modelName,
             messages=messages,
             max_tokens=None,
             temperature=0.7,
@@ -165,7 +165,7 @@ async def rag_query(request: RAGRequest):
     
     
 @router_storage.post("/process_file", response_model=ProcessFileResponse)
-async def process_file( file: UploadFile = File(...), chunk_size: int = 1000, overlap: int = 200, model_name: str = "default_embedding_model", session: Optional[Session] = None ):
+async def process_file( file: UploadFile = File(...), chunk_size: int = 1000, overlap: int = 200, modelName: str = "default_embedding_model", session: Optional[Session] = None ):
     try:
         content = await file.read()
         text = extract_text_from_document(content, file.filename)
@@ -173,7 +173,7 @@ async def process_file( file: UploadFile = File(...), chunk_size: int = 1000, ov
         
         embedding_ids = []
         for i, chunk in enumerate(chunks):
-            embedding = embedding_generator.generate_embedding(chunk, model_name)
+            embedding = embedding_generator.generate_embedding(chunk, modelName)
             metadata = {
                 "filename": file.filename,
                 "content": chunk,

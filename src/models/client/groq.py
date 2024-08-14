@@ -8,8 +8,8 @@ from ...core.common.functions import ToolFunctions
 logger = setup_logger(__name__)
 
 class GroqModel(IClient):
-    def __init__(self, model_name: str):
-        self.model_name = model_name
+    def __init__(self, modelName: str):
+        self.modelName = modelName
         self.client = Groq(api_key=settings.GROQ_API_KEY)
 
     def load(self) -> None:
@@ -19,7 +19,7 @@ class GroqModel(IClient):
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = 500, temperature: float = 0.7, **kwargs) -> Optional[object]:
         try:
             response = self.client.chat.completions.create(
-                model=self.model_name,
+                model=self.modelName,
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
@@ -42,14 +42,14 @@ class GroqModel(IClient):
     def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7) -> str:
         try:
             response = self.client.completions.create(
-                model=self.model_name,
+                model=self.modelName,
                 prompt=prompt,
                 max_tokens=max_tokens,
                 temperature=temperature
             )
             return response.choices[0].text.strip()
         except Exception as e:
-            logger.error(f"Error generating text with Groq model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating text with Groq model {self.modelName}: {str(e)}")
             raise
         
     def _filter_kwargs(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
@@ -60,17 +60,17 @@ class GroqModel(IClient):
         return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:
-        return {"name": self.model_name, "type": "groq"}
+        return {"name": self.modelName, "type": "groq"}
 
     def generate_embedding(self, text: str) -> str:
         try:
             response = self.client.embeddings.create(
-                model=self.model_name,
+                model=self.modelName,
                 input=text
             )
             return response.data[0].embedding
         except Exception as e:
-            logger.error(f"Error generating embedding with Groq model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating embedding with Groq model {self.modelName}: {str(e)}")
             raise
 
     def create_chunks(self, content: str, content_type: str) -> str:
@@ -85,7 +85,7 @@ class GroqModel(IClient):
         try:
             # Note: Groq might not have an API endpoint to list models
             # This is a placeholder implementation
-            return [{"id": self.model_name, "object": "model"}]
+            return [{"id": self.modelName, "object": "model"}]
         except Exception as e:
             logger.error(f"Error getting models from Groq: {str(e)}")
             raise

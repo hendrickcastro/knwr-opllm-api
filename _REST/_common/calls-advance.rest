@@ -1,20 +1,31 @@
 @baseUrl = http://localhost:8000
-# @model_name = gpt-4o-mini
-# @model_name = gpt-4o-2024-08-06
-@model_name = llama3.1:latest
-# @model_name = gemma2:9b
-# @model_name = gemma2:2b
-# @model_name = claude-3-5-sonnet-20240620
-# @model_name = llama-3.1-70b-versatile
-# @model_name = llama-3.1-8b-instant
-# @model_name = mistralai/Mixtral
+@modelName = gpt-4o-mini
+# @modelName = gpt-4o-2024-08-06
+@modelName = llama3.1:latest
+# @modelName = gemma2:9b
+# @modelName = gemma2:2b
+# @modelName = claude-3-5-sonnet-20240620
+# @modelName = llama-3.1-70b-versatile
+# @modelName = llama-3.1-8b-instant
+# @modelName = mistralai/Mixtral
+
+###
+
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+    "modelName": "{{modelName}}",
+    "prompt": "Escribe una historia corta de ciencia ficción de 300 palabras que incorpore los siguientes conceptos y cualquier idea relacionada que hayas encontrado: viajes espaciales, colonización de Marte, tecnología futurista. Contexto adicional: {resultado_de_busqueda_de_embeddings}",
+    "max_tokens": 400
+}
 
 ###
 POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {"role": "system", "content": "Eres un asistente que ayuda a los usuarios con información precisa y detallada."},
         {"role": "user", "content": "Hola, ¿cómo estás?"},
@@ -36,7 +47,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {"role": "system", "content": "Eres un asistente que ayuda a los usuarios con información precisa y detallada."},
         {"role": "user", "content": "Hola, ¿cómo estás?"},
@@ -61,7 +72,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {"role": "system", "content": "Eres un asistente que ayuda a los usuarios con información precisa y detallada."},
         {"role": "user", "content": "cuantas r tiene la palabra strawberry"}
@@ -84,7 +95,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
@@ -106,7 +117,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
@@ -124,7 +135,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
@@ -142,7 +153,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",
@@ -160,7 +171,7 @@ POST {{baseUrl}}/chat
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "messages": [
         {
             "role": "system",

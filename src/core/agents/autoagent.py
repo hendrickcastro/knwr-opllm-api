@@ -5,8 +5,8 @@ from ...core.utils import setup_logger
 logger = setup_logger(__name__)
 
 class AutoAgent:
-    def __init__(self, model_name: str, task_description: str):
-        self.model_name = model_name
+    def __init__(self, modelName: str, task_description: str):
+        self.modelName = modelName
         self.task_description = task_description
         self.context: Dict[str, Any] = {}
 
@@ -27,10 +27,10 @@ class AutoAgent:
 
 class AutoAgentFactory:
     @staticmethod
-    def create_agent(model_name: str, task_description: str) -> AutoAgent:
+    def create_agent(modelName: str, task_description: str) -> AutoAgent:
         try:
-            model_manager.load_model(model_name)  # Ensure the model is loaded
-            return AutoAgent(model_name, task_description)
+            model_manager.load_model(modelName)  # Ensure the model is loaded
+            return AutoAgent(modelName, task_description)
         except Exception as e:
             logger.error(f"Error creating AutoAgent: {str(e)}")
             raise

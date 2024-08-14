@@ -13,9 +13,9 @@ class PromptHandler:
     def __init__(self):
         self.model_manager = model_manager
 
-    def process_prompt(self, model_name: str, prompt_type: str, **kwargs) -> str:
+    def process_prompt(self, modelName: str, prompt_type: str, **kwargs) -> str:
         try:
-            model = self.model_manager.get_model(model_name)
+            model = self.model_manager.get_model(modelName)
             
             if prompt_type == "chat":
                 messages = kwargs.get('messages', [])

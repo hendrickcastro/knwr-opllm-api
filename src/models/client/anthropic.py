@@ -9,8 +9,8 @@ import json
 logger = setup_logger(__name__)
 
 class AnthropicModel(IClient):
-    def __init__(self, model_name: str):
-        self.model_name = model_name
+    def __init__(self, modelName: str):
+        self.modelName = modelName
         self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
     def load(self) -> None:
@@ -20,7 +20,7 @@ class AnthropicModel(IClient):
     def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Dict[str, Any]:
         try:
             response = self.client.messages.create(
-                model=self.model_name,
+                model=self.modelName,
                 max_tokens=max_tokens or 1024,
                 temperature=temperature,
                 messages=[{"role": "user", "content": prompt}],
@@ -28,7 +28,7 @@ class AnthropicModel(IClient):
             )
             return self._format_response(response)
         except Exception as e:
-            logger.error(f"Error generating with Anthropic model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating with Anthropic model {self.modelName}: {str(e)}")
             raise
 
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Dict[str, Any]:
@@ -45,7 +45,7 @@ class AnthropicModel(IClient):
             system_message = system_message.strip()
             
             response = self.client.messages.create(
-                model=self.model_name,
+                model=self.modelName,
                 max_tokens=max_tokens or 1024,
                 temperature=temperature,
                 system=system_message if system_message else None,
@@ -56,7 +56,7 @@ class AnthropicModel(IClient):
                 
             return resp
         except Exception as e:
-            logger.error(f"Error generating chat with Anthropic model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating chat with Anthropic model {self.modelName}: {str(e)}")
             raise
 
     def _format_response(self, response) -> Dict[str, Any]:
@@ -86,7 +86,7 @@ class AnthropicModel(IClient):
         return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:
-        return {"name": self.model_name, "type": "anthropic"}
+        return {"name": self.modelName, "type": "anthropic"}
 
     def generate_embedding(self, text: str) -> str:
         # Nota: Anthropic actualmente no ofrece un servicio de embeddings.
@@ -109,7 +109,7 @@ class AnthropicModel(IClient):
         # Esta es una implementación aproximada usando el método de chat.
         try:
             response = self.client.messages.create(
-                model=self.model_name,
+                model=self.modelName,
                 messages=[
                     {"role": "system", "content": task_description},
                     {"role": "user", "content": user_input}
@@ -117,7 +117,7 @@ class AnthropicModel(IClient):
             )
             return response.content[0].text
         except Exception as e:
-            logger.error(f"Error in process_auto_agent with Anthropic model {self.model_name}: {str(e)}")
+            logger.error(f"Error in process_auto_agent with Anthropic model {self.modelName}: {str(e)}")
             raise
 
     def get_models(self) -> List[Dict[str, str]]:

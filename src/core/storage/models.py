@@ -15,7 +15,7 @@ class ChatMessage(BaseModel):
 class ChatSession(BaseModel):
     session_id: str
     messages: List[ChatMessage]
-    model_name: str
+    modelName: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

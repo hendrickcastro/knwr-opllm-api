@@ -1,10 +1,13 @@
+
+usa esta carpeta D:\_VHD
 Quiero crear bot para trading para criptomonedas que permita duplicar el dinero cada 5 o 8 dias como mucho:
 
 1.) Estrategia es evitar perdidas o perdidas significativas, para esto debemos implementar todas las técnicas que sean necesarias.
 2.) Debemos como primera instancia usar técnicas de scalping para obtener ganancias cuidando el punto 1.
 3.) debemos simular un grid trading guiandonos de metrices para mover el position sizing o stop loss el both debe hacer esto dinamicamente siempre siguiendo el punto 1.
-4.) El bot debe ser capaz de guardar los precios la estrategia que se uso si se hizo en algun lugar del tiempo con los precios u datos del mercado para luego poder simular con otras estrategias y buscar mejorar continuamente,
-este loop debe ser diario osea debe poder simular un dia entero ajustando tecnicas para buscar el mayor beneficio e ir aprendiendo.
+4.) El bot debe ser capaz de guardar los precios la estrategia que se uso si se hizo en algun lugar del tiempo con los precios u datos del 
+    mercado para luego poder simular con otras estrategias y buscar mejorar continuamente,
+    este loop debe ser diario osea debe poder simular un dia entero ajustando tecnicas para buscar el mayor beneficio e ir aprendiendo.
 5.) Debemos monitorizar la blockchain en busca de posibles datos que nos sirvan para tomar decisiones de compra o venta.
 6.) Debemos evitar el slippage e implementar trailing stop.
 7.) Debemos considerar los fees o comisiones del exchange para no incurrir en perdidas.

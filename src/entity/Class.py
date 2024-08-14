@@ -11,7 +11,8 @@ class Session(PBaseModel):
     sessionId: Optional[str] = None
     
 class RequestBasic(PBaseModel):
-    model_name: Optional[str] = None
+    prompt: Optional[str] = None
+    modelName: Optional[str] = None
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     top_p: Optional[float] = None
@@ -19,7 +20,7 @@ class RequestBasic(PBaseModel):
 
 class ChatRequest(PBaseModel):
     # Parámetros obligatorios
-    model_name: str
+    modelName: str
     messages: List[Message]
     session: Optional[Session] = None
 
@@ -166,7 +167,7 @@ class ChunkResponse(PBaseModel):
     chunks: List[str]
 
 class AutoAgentRequest(PBaseModel):
-    model_name: str = Field(..., alias='model_name')
+    modelName: str = Field(..., alias='modelName')
     task_description: str
     user_input: str
 
@@ -216,7 +217,7 @@ class GenerateResponse(PBaseModel):
     
 class RAGRequest(PBaseModel):
     query: str
-    model_name: str
+    modelName: str
     top_k: int = 5
     session: Optional[Session] = None
 
