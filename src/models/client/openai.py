@@ -8,8 +8,8 @@ from ...core.common.functions import ToolFunctions
 logger = setup_logger(__name__)
 
 class OpenAIModel(IClient):
-    def __init__(self, model_name: str):
-        self.model_name = model_name
+    def __init__(self, modelName: str):
+        self.modelName = modelName
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
     def load(self) -> None:
@@ -23,7 +23,7 @@ class OpenAIModel(IClient):
                 
         try:
             response = self.client.chat.completions.create(
-                model=self.model_name,
+                model=self.modelName,
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
@@ -46,14 +46,14 @@ class OpenAIModel(IClient):
     def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7) -> str:
         try:
             response = self.client.completions.create(
-                model=self.model_name,
+                model=self.modelName,
                 prompt=prompt,
                 max_tokens=max_tokens,
                 temperature=temperature
             )
             return response.choices[0].text.strip()
         except Exception as e:
-            logger.error(f"Error generating text with OpenAI model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating text with OpenAI model {self.modelName}: {str(e)}")
             raise
         
     def _filter_kwargs(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
@@ -65,17 +65,17 @@ class OpenAIModel(IClient):
         return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:
-        return {"name": self.model_name, "type": "openai"}
+        return {"name": self.modelName, "type": "openai"}
 
     def generate_embedding(self, text: str) -> str:
         try:
             response = self.client.embeddings.create(
-                model=self.model_name,
+                model=self.modelName,
                 input=text
             )
             return response.data[0].embedding
         except Exception as e:
-            logger.error(f"Error generating embedding with OpenAI model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating embedding with OpenAI model {self.modelName}: {str(e)}")
             raise
 
     def create_chunks(self, content: str, content_type: str) -> str:

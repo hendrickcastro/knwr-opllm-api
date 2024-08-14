@@ -1,9 +1,9 @@
 @baseUrl = http://localhost:8000
-@model_name = gpt-4o-mini
-# @model_name = llama3.1:latest
-# @model_name = claude-3-5-sonnet-20240620
-# @model_name = llama-3.1-70b-versatile
-# @model_name = mistralai/Mixtral
+@modelName = gpt-4o-mini
+# @modelName = llama3.1:latest
+# @modelName = claude-3-5-sonnet-20240620
+# @modelName = llama-3.1-70b-versatile
+# @modelName = mistralai/Mixtral
 
 
 ### Almacenar embedding
@@ -81,7 +81,7 @@ Content-Type: application/json
 
 {
     "query": "¿Cuáles son los principales beneficios de la inteligencia artificial en la atención médica?",
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "top_k": 3
 }
 
@@ -117,7 +117,7 @@ Content-Type: application/json
 
 {
     "query": "¿Cuáles son las aplicaciones de la inteligencia artificial en la medicina?",
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "top_k": 3
 }
 
@@ -129,7 +129,7 @@ POST {{baseUrl}}/check/load_model
 Content-Type: application/json
 
 {
-    "model_name": "{{model_name}}",
+    "modelName": "{{modelName}}",
     "model_type": "ollama"
 }
 

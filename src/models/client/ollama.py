@@ -9,8 +9,8 @@ from ...core.common.functions import ToolFunctions
 logger = setup_logger(__name__)
 
 class OllamaModel(IClient):
-    def __init__(self, model_name: str):
-        self.model_name = model_name
+    def __init__(self, modelName: str):
+        self.modelName = modelName
 
     def load(self) -> None:
         # Assuming Ollama models don't need explicit loading
@@ -19,25 +19,25 @@ class OllamaModel(IClient):
     def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7) -> str:
         try:
             response = ollama.generate(
-                model=self.model_name,
+                model=self.modelName,
                 prompt=prompt,
             )
-            return response['text'].strip()
+            return response
         except Exception as e:
-            logger.error(f"Error generating text with Ollama model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating text with Ollama model {self.modelName}: {str(e)}")
             raise
 
     def generate_chat(self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None, temperature: float = 0.7, **kwargs) -> Optional[object]:
         try:
             response = ollama.chat(
-                model=self.model_name,
+                model=self.modelName,
                 messages=messages,
                 options={ **kwargs, temperature: temperature }
             )
 
             return response
         except Exception as e:
-            logger.error(f"Error generating chat with Ollama model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating chat with Ollama model {self.modelName}: {str(e)}")
             raise
         
     def _filter_kwargs(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
@@ -48,17 +48,17 @@ class OllamaModel(IClient):
         return {k: v for k, v in kwargs.items() if k in accepted_params and v is not None}
 
     def get_info(self) -> Dict[str, Any]:
-        return {"name": self.model_name, "type": "ollama"}
+        return {"name": self.modelName, "type": "ollama"}
 
     def generate_embedding(self, text: str) -> str:
         try:
             response = ollama.embedding(
-                model=self.model_name,
+                model=self.modelName,
                 input=text
             )
             return response['embedding']
         except Exception as e:
-            logger.error(f"Error generating embedding with Ollama model {self.model_name}: {str(e)}")
+            logger.error(f"Error generating embedding with Ollama model {self.modelName}: {str(e)}")
             raise
 
     def create_chunks(self, content: str, content_type: str) -> str:
