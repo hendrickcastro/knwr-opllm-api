@@ -19,7 +19,7 @@ Content-Type: application/json
     "prompt": "Escribe una historia corta de ciencia ficción de 300 palabras que incorpore los siguientes conceptos y cualquier idea relacionada que hayas encontrado: viajes espaciales, colonización de Marte, tecnología futurista. Contexto adicional: {resultado_de_busqueda_de_embeddings}",
     "max_tokens": 400,
     "session": {
-        "userId": "knowcker",
+        "userId": "knowcker2",
         "sessionId": "session-002"
     }
 }
