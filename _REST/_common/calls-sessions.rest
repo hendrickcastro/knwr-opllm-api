@@ -12,7 +12,7 @@ Content-Type: application/json
 {}
 
 ###
-GET {{baseUrl}}/sessions/knowcker/sessions/session-123/items
+GET {{baseUrl}}/sessions/knowcker/sessions/session-002/items
 Content-Type: application/json
 
 {}
@@ -42,7 +42,7 @@ Content-Type: application/json
 }
 
 ### Generar embedding
-POST {{baseUrl}}/sessions/sync_to_firebase/knowcker
+POST {{baseUrl}}/sessions/sync_to_firebase/knowcker2
 Content-Type: application/json
 
 {

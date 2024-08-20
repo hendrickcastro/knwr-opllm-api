@@ -249,3 +249,12 @@ class GetEmbeddingResponse(PBaseModel):
     
 class SyncResponse(PBaseModel):
     message: str
+    
+class Query(PBaseModel):
+    columns: List[str] = []
+    where: Dict[str, Any] = {}
+    order_by: List[str] = []
+    limit: Optional[int] = None
+    offset: Optional[int] = None
+    
+    
