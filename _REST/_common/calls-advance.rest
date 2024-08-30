@@ -5,7 +5,7 @@
 # @modelName = gemma2:9b
 # @modelName = gemma2:2b
 # @modelName = claude-3-5-sonnet-20240620
-@modelName = llama-3.1-70b-versatile
+@modelName = phi3.5:latest
 # @modelName = llama-3.1-8b-instant
 # @modelName = mistralai/Mixtral
 
