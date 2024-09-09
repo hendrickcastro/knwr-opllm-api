@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, Optional, List, Union
 from pydantic import Field
 from pydantic import BaseModel as PBaseModel, Field
@@ -17,6 +18,8 @@ class RequestBasic(PBaseModel):
     max_tokens: Optional[int] = None
     top_p: Optional[float] = None
     session: Optional[Session] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
 
 class ChatRequest(PBaseModel):
     # Parámetros obligatorios

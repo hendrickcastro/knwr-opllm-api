@@ -15,7 +15,6 @@ Content-Type: application/json
 GET {{baseUrl}}/sessions/knowcker/sessions/session-002/items
 Content-Type: application/json
 
-{}
 
 ###
 POST {{baseUrl}}/sessions/knowcker/session/session-002/context/add_item
