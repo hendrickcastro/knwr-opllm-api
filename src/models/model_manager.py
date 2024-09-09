@@ -110,7 +110,7 @@ class ModelManager:
                 logger.error(f"Unsupported method: {method}")
                 return f"Unsupported method: {method}"
             
-            self.tool_functions.saveSessionData(modelName, input_data, kwargs, filtered_kwargs, response["message"]['content'], logger)
+            self.tool_functions.saveSessionData(modelName, input_data, kwargs, filtered_kwargs, response, logger)
             
             return response
         except Exception as e:

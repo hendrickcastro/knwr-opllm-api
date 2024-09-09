@@ -4,7 +4,38 @@
 # @model_name = claude-3-5-sonnet-20240620
 # @model_name = llama-3.1-70b-versatile
 # @model_name = mistralai/Mixtral
+@modelName = gpt-4o-mini
+# @modelName = llama3.1:latest
+# @modelName = claude-3-5-sonnet-20240620
+@modelName = llama-3.1-70b-versatile
+# @modelName = mistralai/Mixtral
 
+###
+GET {{baseUrl}}/sessions/list/knowcker/user
+Content-Type: application/json
+
+{}
+
+###
+GET {{baseUrl}}/sessions/knowcker/sessions/session-002/items
+Content-Type: application/json
+
+
+###
+POST {{baseUrl}}/sessions/knowcker/session/session-002/context/add_item
+Content-Type: application/json
+
+{
+    "item_data": {
+        "key": "0fb68ed9-f3d8-45b4-8de3-b9d3153a5ea4"
+    }
+}
+
+###
+GET {{baseUrl}}/sessions/knowcker/session/session-002/context
+Content-Type: application/json
+
+{}
 
 ### Generar embedding
 POST {{baseUrl}}/sessions/sync_from_firebase/knowcker
@@ -15,7 +46,7 @@ Content-Type: application/json
 }
 
 ### Generar embedding
-POST {{baseUrl}}/sessions/sync_to_firebase/knowcker
+POST {{baseUrl}}/sessions/sync_to_firebase/knowcker2
 Content-Type: application/json
 
 {

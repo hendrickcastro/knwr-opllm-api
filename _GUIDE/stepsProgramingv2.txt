@@ -59,3 +59,5 @@ Crear un bot de trading para criptomonedas con el ambicioso objetivo de duplicar
 Este enfoque requiere no solo de conocimientos avanzados en programación, machine learning, y análisis financiero, sino también de una constante vigilancia y ajuste. 
 El objetivo de duplicar el dinero en tan poco tiempo es extremadamente agresivo, por lo que la gestión de riesgos debe ser la prioridad principal, 
 incluso si eso significa reducir las expectativas de beneficio para mantener la viabilidad a largo plazo
+
+usar nomic embed text v1 5 f32 para embedings

@@ -1,12 +1,11 @@
 @baseUrl = http://localhost:8000
 @modelName = gpt-4o-mini
 # @modelName = gpt-4o-2024-08-06
-@modelName = llama3.1:latest
+# @modelName = llama3.1:latest
 # @modelName = gemma2:9b
 # @modelName = gemma2:2b
 # @modelName = claude-3-5-sonnet-20240620
-# @modelName = llama-3.1-70b-versatile
-# @modelName = llama-3.1-8b-instant
+# @modelName = phi3.5:latest
 # @modelName = mistralai/Mixtral
 
 ###
@@ -17,7 +16,11 @@ Content-Type: application/json
 {
     "modelName": "{{modelName}}",
     "prompt": "Escribe una historia corta de ciencia ficción de 300 palabras que incorpore los siguientes conceptos y cualquier idea relacionada que hayas encontrado: viajes espaciales, colonización de Marte, tecnología futurista. Contexto adicional: {resultado_de_busqueda_de_embeddings}",
-    "max_tokens": 400
+    "max_tokens": 400,
+    "session": {
+        "userId": "knowcker2",
+        "sessionId": "session-002"
+    }
 }
 
 ###
@@ -40,7 +43,6 @@ Content-Type: application/json
         "sessionId": "session-002"
     }
 }
-
 
 ###
 POST {{baseUrl}}/chat
