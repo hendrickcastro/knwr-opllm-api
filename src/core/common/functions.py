@@ -52,7 +52,7 @@ class ToolFunctions():
                     "model": modelName,
                     "request": str(input_data),
                     "options": filtered_kwargs,
-                    "response": response,
+                    "response": response.get("message", {}).get("content") or response.get("response"),
                     "timestamp": time.time()
                 }
                 session_storage.store_session_data(session["userId"], session["sessionId"], session_data)

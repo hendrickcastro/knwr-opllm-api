@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, Optional, List, Union
 from pydantic import Field
 from pydantic import BaseModel as PBaseModel, Field
@@ -17,6 +18,8 @@ class RequestBasic(PBaseModel):
     max_tokens: Optional[int] = None
     top_p: Optional[float] = None
     session: Optional[Session] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
 
 class ChatRequest(PBaseModel):
     # Parámetros obligatorios
@@ -131,6 +134,8 @@ class ChatResponse(PBaseModel):
         elif isinstance(response.get("message"), list):
             # Si es una lista, tomamos el primer elemento
             message_content = response["message"][0].text if hasattr(response["message"][0], 'text') else str(response["message"][0])
+        elif isinstance(response.get("response"), str):
+            message_content = response.get("response", "")
         else:
             message_content = str(response.get("message", ""))
 
@@ -247,3 +252,12 @@ class GetEmbeddingResponse(PBaseModel):
     
 class SyncResponse(PBaseModel):
     message: str
+    
+class Query(PBaseModel):
+    columns: List[str] = []
+    where: Dict[str, Any] = {}
+    order_by: List[str] = []
+    limit: Optional[int] = None
+    offset: Optional[int] = None
+    
+    

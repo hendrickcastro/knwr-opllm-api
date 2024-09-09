@@ -3,6 +3,7 @@ import json
 import os
 import time
 from typing import Dict, Any
+from src.entity.Class import Query
 from ..config import settings
 from ..utils import setup_logger
 from .firebase import firebase_connection
@@ -14,7 +15,6 @@ def initialize_database(db_path: str):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    # Crear tabla para almacenar sesiones con múltiples mensajes y estado de sincronización
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS sessions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,6 +27,15 @@ def initialize_database(db_path: str):
         )
     ''')
     
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS context (
+            session_id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            context TEXT,
+            timestamp REAL NOT NULL
+        )
+    ''')
+    
     conn.commit()
     conn.close()
 
@@ -35,6 +44,28 @@ initialize_database(settings.SQLITE_DB_PATH)
 class SessionStorage:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        
+    def save_session_context(self, user_id: str, session_id: str, context: Dict[str, Any]):
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            context_json = json.dumps(context)
+            timestamp = time.time()
+            
+            cursor.execute('''
+                INSERT INTO context (session_id, user_id, context, timestamp)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(session_id) DO UPDATE SET
+                context = excluded.context,
+                timestamp = excluded.timestamp
+            ''', (session_id, user_id, context_json, timestamp))
+            
+            conn.commit()
+            conn.close()
+            logger.info(f"Context saved for session {session_id} for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error saving context for session {session_id}: {str(e)}")
+            raise e
 
     def store_locally(self, user_id: str, session_id: str, data: Dict[str, Any]):
         conn = sqlite3.connect(self.db_path)
@@ -175,7 +206,6 @@ class SessionStorage:
         except Exception as e:
             logger.error(f"Error during local to Firebase sync for user {user_id}: {str(e)}")
             
-
     def delete_session_data(self, user_id: str, session_id: str, guid: str):
         try:
             # Eliminar de la base de datos local
@@ -194,8 +224,7 @@ class SessionStorage:
             logger.info(f"Deleted session {session_id} with GUID {guid} from Firebase")
         except Exception as e:
             logger.error(f"Error deleting session {session_id} with GUID {guid}: {str(e)}")
-            
-            
+                
     def update_session_data(self, user_id: str, session_id: str, guid: str, new_data: Dict[str, Any]):
         try:
             # Actualizar en la base de datos local
@@ -222,5 +251,101 @@ class SessionStorage:
             logger.info(f"Updated session {session_id} with GUID {guid} in Firebase")
         except Exception as e:
             logger.error(f"Error updating session {session_id} with GUID {guid}: {str(e)}")
+            
+    def list_sessions(self, user_id: str):
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('SELECT DISTINCT user_id, session_id FROM sessions WHERE user_id = ?', (user_id,))
+            sessions = cursor.fetchall()
+            conn.close()
+            
+            session_list = [{"user_id": user_id, "session_id": session_id} for user_id, session_id in sessions]
+            logger.info(f"Found {len(session_list)} sessions in the local database")
+            return session_list
+        except Exception as e:
+            raise e
+    
+    def list_items_in_session(self, user_id: str, session_id: str):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, guid, data, timestamp, synced FROM sessions WHERE user_id = ? AND session_id = ? order by timestamp desc LIMIT 20', (user_id, session_id))
+        items = cursor.fetchall()
+        conn.close()
+        
+        item_list = []
+        for item in items:
+            item_dict = {
+                "id": item[0],
+                "guid": item[1],
+                "data": json.loads(item[2]),
+                "timestamp": item[3],
+                "synced": item[4]
+            }
+            item_list.append(item_dict)
+        
+        logger.info(f"Found {len(item_list)} items in session {session_id} for user {user_id}")
+        return item_list
+    
+    def add_item_to_session_context(self, user_id: str, session_id: str, item_data: Dict[str, Any]):
+        try:
+            # Obtener el contexto actual
+            context = self.get_session_context(session_id)
+            
+            # Si no existe contexto, inicializar como lista
+            if "items" not in context:
+                context["items"] = []
+            else:
+                ## adding timestamp each item form item_data if not exist
+                if 'timestamp' not in item_data:
+                    item_data['timestamp'] = time.time()
+                
+
+            # Agregar el nuevo ítem al contexto
+            context["items"].append(item_data)
+
+            # Guardar el contexto actualizado en la base de datos
+            self.save_session_context(user_id, session_id, context)
+            
+            logger.info(f"Item added to context for session {session_id} for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error adding item to context for session {session_id}: {str(e)}")
+            raise e
+               
+    def get_session_context(self, session_id: str) -> Dict[str, Any]:
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT context FROM context WHERE session_id = ?
+            ''', (session_id,))
+            
+            row = cursor.fetchone()
+            conn.close()
+            
+            if row and row[0]:
+                context = json.loads(row[0])
+                logger.info(f"Context retrieved for session {session_id}")
+                return context
+            else:
+                logger.info(f"No context found for session {session_id}")
+                return {"items": []}
+        except Exception as e:
+            logger.error(f"Error retrieving context for session {session_id}: {str(e)}")
+            raise e
+          
+    def store_session_data(self, user_id: str, session_id: str, data: Dict[str, Any]):
+        data['timestamp'] = time.time()
+        self.store_locally(user_id, session_id, data)
+        try:
+            doc_id = self.store_in_firebase(user_id, session_id, data)
+            logger.info(f"Stored in Firebase with ID: {doc_id}")
+            self.mark_as_synced(user_id, session_id, doc_id)
+            
+            # Agregar el ítem al contexto de la sesión
+            self.add_item_to_session_context(user_id, session_id, data)
+        except Exception as e:
+            logger.error(f"Error storing in Firebase: {str(e)}. Data stored locally.")
 
 session_storage = SessionStorage(settings.SQLITE_DB_PATH)

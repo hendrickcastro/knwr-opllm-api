@@ -45,13 +45,23 @@ class OpenAIModel(IClient):
         
     def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: float = 0.7) -> str:
         try:
-            response = self.client.completions.create(
+            response = self.client.chat.completions.create(
                 model=self.modelName,
-                prompt=prompt,
+                messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
-                temperature=temperature
+                temperature=temperature,
             )
-            return response.choices[0].text.strip()
+            
+            response_dict = {
+                "message": {"content": response.choices[0].message.content},
+                "done_reason": response.choices[0].finish_reason,
+                "done": True,
+                "total_duration": response.usage.total_tokens,
+                "prompt_eval_count": response.usage.prompt_tokens,
+                "eval_count": response.usage.completion_tokens,
+            }
+            
+            return response_dict
         except Exception as e:
             logger.error(f"Error generating text with OpenAI model {self.modelName}: {str(e)}")
             raise

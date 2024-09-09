@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict
 from ...core.agents.autoagent import auto_agent_factory
@@ -12,6 +13,9 @@ router = APIRouter()
 @router.post("/generate", response_model=ChatResponse)
 async def generate_text(request: RequestBasic):
     try:
+        logger.info(f"RHOLA")
+        # adding start time and end time to the request
+        request.start_time = datetime.now()  # This should now work correctly
         logger.info(f"Received generate request: {request.model_dump()}")
         kwargs = request.model_dump(exclude={"modelName", "messages", "max_tokens", "temperature", "prompt"})
         
@@ -22,6 +26,10 @@ async def generate_text(request: RequestBasic):
             temperature=request.temperature,
             **kwargs
         )
+        request.end_time = datetime.now()  # This should now work correctly
+        #console log time in seconds
+        time_taken = request.end_time - request.start_time
+        logger.info(f"Time taken: {time_taken.total_seconds()} seconds")
         return ChatResponse.from_model_response(response)
     except Exception as e:
         logger.error(f"Error generating text: {str(e)}")
