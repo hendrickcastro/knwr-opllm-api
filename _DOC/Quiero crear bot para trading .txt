@@ -1,4 +1,4 @@
-Quiero crear bot para trading para criptomonedas que permita duplicar el dinero cada 5 o 8 dias como mucho:
+Quiero crear bot para trading para criptomonedas en python y correctamente estructurado en carpetas que la carpeta principal sea src que permita duplicar el dinero cada 5 o 8 dias como mucho:
 
 1.) Estrategia es evitar perdidas o perdidas significativas, para esto debemos implementar todas las técnicas que sean necesarias.
 2.) Debemos como primera instancia usar técnicas de scalping para obtener ganancias cuidando el punto 1.
